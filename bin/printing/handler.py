@@ -1,9 +1,10 @@
 from pypdf import PdfReader
+from bin.database.models import Printer
 
 
 class PrintProcessor():
 
-    def print_page(self, printer: any, path: str):
+    def print_page(self, printer: Printer, path: str):
         pass
 
 
@@ -12,7 +13,7 @@ class PrintHandler():
     def __init__(self, processor: PrintProcessor) -> None:
         self.processor = processor
 
-    def print(self, printer, pdf: PdfReader):
+    def print(self, printer: Printer, pdf: PdfReader):
 
         if pdf is None:
             raise MissingPDFException()
