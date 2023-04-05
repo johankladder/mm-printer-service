@@ -1,7 +1,8 @@
 
-# Run file with: python -m service.mqtt.runner   
+# Run file with: python -m service.mqtt.runner
 
 import os
+import time
 
 from bin.processing.generator import PDFGenerator
 from bin.processing.merger import PDFMerger
@@ -19,7 +20,7 @@ payload_parser = PayloadParser()
 generator = PDFGenerator()
 merger = PDFMerger()
 handler = PrintHandler(
-    processor=DebugProcessor()
+    processors=[DebugProcessor()]
 )
 
 

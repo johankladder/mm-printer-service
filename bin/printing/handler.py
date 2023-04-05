@@ -10,8 +10,8 @@ class PrintProcessor():
 
 class PrintHandler():
 
-    def __init__(self, processor: PrintProcessor) -> None:
-        self.processor = processor
+    def __init__(self, processors: dict[PrintProcessor]) -> None:
+        self.processors = processors
 
     def print(self, printer: Printer, pdf: PdfReader):
 
@@ -21,15 +21,16 @@ class PrintHandler():
         if printer is None:
             raise PrinterIsEmptyException()
 
-        if self.processor is None:
+        if not self.processors:
             raise MissingProcessorException()
 
         path = pdf.stream.name
 
-        self.processor.print_page(
-            printer=printer,
-            path=path
-        )
+        for processor in self.processors:
+            processor.print_page(
+                printer=printer,
+                path=path
+            )
 
 
 class PrinterIsEmptyException(BaseException):

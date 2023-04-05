@@ -17,7 +17,7 @@ def processor():
 @pytest.fixture
 def handler(processor: PrintProcessor):
     return PrintHandler(
-        processor=processor
+        processors=[processor]
     )
 
 
@@ -40,11 +40,11 @@ def test_print_with_empty_printer(handler: PrintHandler):
 
 def test_print_without_processor(handler: PrintHandler, pdf: PdfReader):
     with pytest.raises(MissingProcessorException):
-        handler.processor = None
+        handler.processors = None
         handler.print(printer=1, pdf=pdf)
 
 
 def test_print_happy_flow(handler: PrintHandler, pdf: PdfReader):
     handler.print(printer=1, pdf=pdf)
-    handler.processor.print_page.assert_called_with(
+    handler.processors[0].print_page.assert_called_with(
         printer=1, path=pdf.stream.name)
