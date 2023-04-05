@@ -12,6 +12,7 @@ from bin.models.print_payload import PrintPayload
 
 from bin.printing.handler import PrintHandler
 from bin.printing.processors.debug_processor import DebugProcessor
+from bin.printing.processors.cups_processor import CupsProcessor
 
 import paho.mqtt.client as mqtt
 from dotenv import load_dotenv
@@ -20,7 +21,7 @@ payload_parser = PayloadParser()
 generator = PDFGenerator()
 merger = PDFMerger()
 handler = PrintHandler(
-    processors=[DebugProcessor()]
+    processors=[DebugProcessor(), CupsProcessor()]
 )
 
 
@@ -43,6 +44,7 @@ def on_message(client, userdata, msg):
         print("Something went wrong (%s)" % (type(exception).__name__))
 
 
+
 if __name__ == "__main__":
 
     load_dotenv()
@@ -59,4 +61,8 @@ if __name__ == "__main__":
     )
 
     client.connect(location, port, 60)
-    client.loop_forever()
+    client.loop_start()
+
+    # Keep open:
+    while True:
+        pass
