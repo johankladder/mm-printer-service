@@ -2,7 +2,7 @@
 # Run file with: python -m service.mqtt.runner
 
 import os
-import time
+import threading
 
 from bin.processing.generator import PDFGenerator
 from bin.processing.merger import PDFMerger
@@ -32,16 +32,23 @@ def on_connect(client, userdata, flags, rc):
 
 
 def on_message(client, userdata, msg):
-    print("\n")
-    print("Recieved message on topic '%s'" % (msg.topic))
 
-    try:
-        print_payload: PrintPayload = payload_parser.parse_payload(msg.payload)
-        base_pdf = generator.generate(base64=print_payload.base64)
-        merged_pdf = merger.merge(pdf=base_pdf, pages=print_payload.pages)
-        handler.print(printer=print_payload.printer, pdf=merged_pdf)
-    except BaseException as exception:
-        print("Something went wrong (%s)" % (type(exception).__name__))
+    def process_message():
+        print("\n")
+        print("Recieved message on topic '%s'" % (msg.topic))
+
+        try:
+            print_payload: PrintPayload = payload_parser.parse_payload(msg.payload)
+            base_pdf = generator.generate(base64=print_payload.base64)
+            merged_pdf = merger.merge(pdf=base_pdf, pages=print_payload.pages)
+            handler.print(printer=print_payload.printer, pdf=merged_pdf)
+        except BaseException as exception:
+            print("Something went wrong (%s)" % (type(exception).__name__))
+    
+    # Make the processing non locking:
+    t = threading.Thread(target=process_message)
+    t.start()
+
 
 
 
