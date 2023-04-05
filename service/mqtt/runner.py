@@ -1,4 +1,6 @@
 
+# Run file with: python -m service.mqtt.runner   
+
 import os
 
 from bin.processing.generator import PDFGenerator
@@ -30,7 +32,7 @@ def on_connect(client, userdata, flags, rc):
 def on_message(client, userdata, msg):
     print("\n")
     print("Recieved message on topic '%s'" % (msg.topic))
-    
+
     try:
         print_payload: PrintPayload = payload_parser.parse_payload(msg.payload)
         base_pdf = generator.generate(base64=print_payload.base64)
