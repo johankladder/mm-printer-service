@@ -3,6 +3,9 @@ import os
 
 from bin.processing.generator import PDFGenerator
 from bin.processing.merger import PDFMerger
+from bin.processing.payload_parser import PayloadParser
+
+from bin.models.print_payload import PrintPayload
 
 from bin.printing.handler import PrintHandler
 from bin.printing.processors.debug_processor import DebugProcessor
@@ -10,11 +13,13 @@ from bin.printing.processors.debug_processor import DebugProcessor
 import paho.mqtt.client as mqtt
 from dotenv import load_dotenv
 
+payload_parser = PayloadParser()
 generator = PDFGenerator()
 merger = PDFMerger()
 handler = PrintHandler(
     processor=DebugProcessor()
 )
+
 
 def on_connect(client, userdata, flags, rc):
     print("Connected with result code "+str(rc))
@@ -25,12 +30,14 @@ def on_connect(client, userdata, flags, rc):
 def on_message(client, userdata, msg):
     print("\n")
     print("Recieved message on topic '%s'" % (msg.topic))
-    print("Payload: %s" % (msg.payload))
+    
     try:
-        handler.print(printer=None, pdf=None)
+        print_payload: PrintPayload = payload_parser.parse_payload(msg.payload)
+        base_pdf = generator.generate(base64=print_payload.base64)
+        merged_pdf = merger.merge(pdf=base_pdf, pages=print_payload.pages)
+        handler.print(printer=print_payload.printer, pdf=merged_pdf)
     except BaseException as exception:
         print("Something went wrong (%s)" % (type(exception).__name__))
-
 
 
 if __name__ == "__main__":

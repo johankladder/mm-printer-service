@@ -1,6 +1,6 @@
 import pytest
 
-from bin.processing.payload_parser import PayloadParser, InvalidPayloadException
+from bin.processing.payload_parser import PayloadParser, InvalidPayloadException, PrinterNotExistException
 from bin.models.print_payload import PrintPayload
 
 from bin.database.database import SessionLocal
@@ -37,7 +37,7 @@ def test_parse_invalid_string_payload(parser: PayloadParser):
 
 
 def test_valid_payload_but_no_printer(parser: PayloadParser):
-    with pytest.raises(InvalidPayloadException):
+    with pytest.raises(PrinterNotExistException):
         parser.parse_payload(
             payload='{"base64":"1234","printer": "printer_1" ,"pages":[],"id":1}')
 
@@ -51,7 +51,7 @@ def test_valid_payload_but_wrong_printer(parser: PayloadParser, session: Alchemy
     session.add(printer)
     session.commit()
 
-    with pytest.raises(InvalidPayloadException):
+    with pytest.raises(PrinterNotExistException):
         parser.parse_payload(
             payload='{"base64":"1234","printer": "printer_1" ,"pages":[],"id":1}')
 
@@ -70,6 +70,7 @@ def test_valid_payload(parser: PayloadParser, session: AlchemySession):
     assert print_payload.base64 == "1234"
     assert print_payload.pages == []
     assert print_payload.printer.id == printer.id
+    assert print_payload.identifier == 1
 
 
 def test_valid_payload_multi_pages(parser: PayloadParser, session: AlchemySession):
@@ -86,3 +87,4 @@ def test_valid_payload_multi_pages(parser: PayloadParser, session: AlchemySessio
     assert print_payload.base64 == "1234"
     assert print_payload.pages == [1, 2]
     assert print_payload.printer.id == printer.id
+    assert print_payload.identifier == 1

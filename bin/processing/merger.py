@@ -7,7 +7,7 @@ class PDFMerger():
     def merge(self, pdf: PdfReader, pages: dict[int]) -> PdfReader:
         if pdf is None:
             raise InvalidPDFException
-
+        
         if len(pages) == 0:
             raise EmptyPDFException()
 

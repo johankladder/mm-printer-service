@@ -32,15 +32,23 @@ class PayloadParser():
         printer = session.query(Printer).filter(
             Printer.remote_identifier == data['printer']).first()
 
-        if not printer or not base_64:
+        if not printer:
+            raise PrinterNotExistException()
+        
+        if not base_64:
             raise InvalidPayloadException()
 
         return PrintPayload(
             base64=base_64,
             printer=printer,
-            pages=pages
+            pages=pages,
+            identifier=id
         )
 
 
 class InvalidPayloadException(BaseException):
+    pass
+
+
+class PrinterNotExistException(BaseException):
     pass

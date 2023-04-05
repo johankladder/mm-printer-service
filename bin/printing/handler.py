@@ -25,6 +25,7 @@ class PrintHandler():
             raise MissingProcessorException()
 
         path = pdf.stream.name
+
         self.processor.print_page(
             printer=printer,
             path=path
