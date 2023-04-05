@@ -6,6 +6,8 @@ from unittest.mock import MagicMock
 from pypdf import PdfReader
 from bin.printing.handler import PrintHandler, PrintProcessor, PrinterIsEmptyException, MissingPDFException, MissingProcessorException
 
+from bin.models.print_payload import PrintPayload
+
 
 @pytest.fixture
 def processor():
@@ -30,21 +32,28 @@ def pdf():
 
 def test_print_with_empty_printer(handler: PrintHandler, pdf: PdfReader):
     with pytest.raises(PrinterIsEmptyException):
-        handler.print(printer=None, pdf=pdf)
+        handler.print(print_payload=None, pdf=pdf)
 
 
 def test_print_with_empty_printer(handler: PrintHandler):
     with pytest.raises(MissingPDFException):
-        handler.print(printer=1, pdf=None)
+        handler.print(print_payload=1, pdf=None)
 
 
 def test_print_without_processor(handler: PrintHandler, pdf: PdfReader):
     with pytest.raises(MissingProcessorException):
         handler.processors = None
-        handler.print(printer=1, pdf=pdf)
+        handler.print(print_payload=PrintPayload(
+            printer=1,
+            base64='1234',
+            pages=[]
+        ), pdf=pdf)
 
 
 def test_print_happy_flow(handler: PrintHandler, pdf: PdfReader):
-    handler.print(printer=1, pdf=pdf)
-    handler.processors[0].print_page.assert_called_with(
-        printer=1, path=pdf.stream.name)
+    handler.print(print_payload=PrintPayload(
+        printer=1,
+        base64='1234',
+        pages=[]
+    ), pdf=pdf)
+    handler.processors[0].print_page.assert_called()

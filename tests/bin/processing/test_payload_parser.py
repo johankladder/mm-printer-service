@@ -70,7 +70,6 @@ def test_valid_payload(parser: PayloadParser, session: AlchemySession):
     assert print_payload.base64 == "1234"
     assert print_payload.pages == []
     assert print_payload.printer.id == printer.id
-    assert print_payload.identifier == 1
 
 
 def test_valid_payload_multi_pages(parser: PayloadParser, session: AlchemySession):
@@ -87,4 +86,3 @@ def test_valid_payload_multi_pages(parser: PayloadParser, session: AlchemySessio
     assert print_payload.base64 == "1234"
     assert print_payload.pages == [1, 2]
     assert print_payload.printer.id == printer.id
-    assert print_payload.identifier == 1

@@ -3,25 +3,23 @@ import os
 
 from bin.printing.handler import PrintProcessor
 from bin.database.models import Printer
+from bin.models.print_payload import PrintPayload
 
 import cups
 import time
 
+
 class CupsProcessor(PrintProcessor):
 
-    def print_page(self, printer: Printer, path: str):
+    def print_page(self, print_payload: PrintPayload, path: str):
 
         conn = cups.Connection()
-        print("CUPS: Connected to cups")
-
         job_id = conn.printFile(
-            printer.progressor_identifier,
+            print_payload.printer.progressor_identifier,
             path,
             'test',
             {}
         )
-
-        print("CUPS: Printing file with job id: %s" % (job_id))
 
         completed = False
         stopped = False
@@ -42,9 +40,12 @@ class CupsProcessor(PrintProcessor):
                 status = "COMPLETED"
                 completed = True
             else:
-                status="UNKNOWN"
+                status = "UNKNOWN"
 
-            print("CUPS: Status (%s)" % (status))    
+            self.publish(print_payload=print_payload, status=status)
             time.sleep(0.5)
 
-        print("CUPS: Completed printing sequence with status: %s" % (status))
+    def publish(self, print_payload: PrintPayload, status: str):
+        status_topic = os.getenv("PRINT_STATUS_TOPIC", 'mm/printing/status/+')
+        status_topic = status_topic.replace('+', str(print_payload.identifier))
+        self.client.publish(status_topic, status)

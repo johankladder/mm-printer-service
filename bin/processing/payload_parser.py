@@ -27,7 +27,6 @@ class PayloadParser():
 
         base_64 = data['base64']
         pages = data['pages']
-        id = data['id']
 
         printer = session.query(Printer).filter(
             Printer.remote_identifier == data['printer']).first()
@@ -41,8 +40,7 @@ class PayloadParser():
         return PrintPayload(
             base64=base_64,
             printer=printer,
-            pages=pages,
-            identifier=id
+            pages=pages
         )
 
 

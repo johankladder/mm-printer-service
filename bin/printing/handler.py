@@ -1,10 +1,16 @@
 from pypdf import PdfReader
 from bin.database.models import Printer
+from bin.models.print_payload import PrintPayload
+
+from paho.mqtt.client import Client
 
 
 class PrintProcessor():
 
-    def print_page(self, printer: Printer, path: str):
+    def __init__(self, client: Client = None) -> None:
+        self.client = client
+
+    def print_page(self, print_payload: PrintPayload, path: str):
         pass
 
 
@@ -13,12 +19,12 @@ class PrintHandler():
     def __init__(self, processors: dict[PrintProcessor]) -> None:
         self.processors = processors
 
-    def print(self, printer: Printer, pdf: PdfReader):
+    def print(self, print_payload: PrintPayload, pdf: PdfReader):
 
         if pdf is None:
             raise MissingPDFException()
 
-        if printer is None:
+        if print_payload.printer is None:
             raise PrinterIsEmptyException()
 
         if not self.processors:
@@ -28,7 +34,7 @@ class PrintHandler():
 
         for processor in self.processors:
             processor.print_page(
-                printer=printer,
+                print_payload=print_payload,
                 path=path
             )
 
