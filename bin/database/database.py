@@ -8,6 +8,11 @@ if "pytest" in sys.modules:
     engine = create_engine(
         SQLALCHEMY_DATABASE_URL
     )
+else:
+    SQLALCHEMY_DATABASE_URL = "sqlite:///live.db"
+    engine = create_engine(
+        SQLALCHEMY_DATABASE_URL
+    )
 
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
