@@ -1,12 +1,7 @@
 
 from bin.printing.handler import PrintProcessor
-from bin.database.models import Printer
 from bin.models.print_payload import PrintPayload
-
-from pypdf import PdfReader
-
 from bin.processing.extractor import PDFExtractor
-
 
 class DebugProcessor(PrintProcessor):
 

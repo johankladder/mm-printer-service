@@ -2,7 +2,6 @@
 import os
 
 from bin.printing.handler import PrintProcessor
-from bin.database.models import Printer
 from bin.models.print_payload import PrintPayload
 
 import cups
