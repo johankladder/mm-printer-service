@@ -32,7 +32,7 @@ class CupsProcessor(PrintProcessor):
             if job_state == 3:
                 status = "HELD"
             elif job_state == 5:
-                status = "Processing"
+                status = "PROCESSING"
             elif job_state == 7:
                 status = "STOPPED"
                 stopped = True

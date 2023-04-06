@@ -14,5 +14,6 @@ class DebugProcessor(PrintProcessor):
         pdf = PDFExtractor().extract(path)
 
         print("DEBUG: Print path: %s" % (path))
-        print("DEBUG: Printing on printer: %s" % (print_payload.printer.progressor_identifier))
+        print("DEBUG: Printing on printer: %s" %
+              (print_payload.printer.progressor_identifier))
         print("DEBUG: Printing: %i pages" % (len(pdf.pages)))

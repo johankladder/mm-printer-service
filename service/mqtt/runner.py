@@ -34,8 +34,8 @@ def on_connect(client, userdata, flags, rc):
 
 
 def on_print_status_data(client, userdata, msg):
-    print("Recieved message on topic '%s' | Payload: %s" % (msg.topic, msg.payload))
-
+    print("Recieved message on topic '%s' | Payload: %s" %
+          (msg.topic, msg.payload))
 
 def on_print_data(client, userdata, msg):
 
