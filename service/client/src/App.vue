@@ -3,12 +3,27 @@
 
     <div class="m-8">
 
+      <div class="flex items-end justify-between">
+        <h1 class="font-bold text-3xl">
+          Print server
+        </h1>
+        <div class="font-bold">
+          <div v-if="mqttConnected" class="bg-green-200 p-4 rounded-lg shadow-lg">
+            Ready for jobs
+          </div>
+          <div v-else class="bg-red-500 p-4 rounded-lg text-white shadow-lg">
+            Not online!
+          </div>
+        </div>
+
+      </div>
+
       <!-- Options section -->
-      <div>
-        <div class="flex mb-2">
+      <div class="mt-8">
+        <div class="flex mb-2 text-xl">
           <b><i>Options</i></b>
         </div>
-        <div class="grid grid-cols-4 gap-4">
+        <div class="grid grid-cols-4 xl:grid-cols-6  gap-4">
           <button v-on:click="onRestartServer()"
             class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
             Restart server
@@ -29,14 +44,14 @@
 
       <!-- Printer section -->
       <div class="mt-8">
-        <div class="flex mb-2">
+        <div class="flex mb-2 text-xl">
           <b><i>Printers</i></b>
         </div>
-        <div class="text-white grid grid-cols-3 gap-4">
+        <div class="text-white grid grid-cols-4 xl:grid-cols-6 gap-4">
           <div :key="printer" v-for="printer in printers"
-            class="flex grid grid-rows-3 aspect-square bg-slate-800 rounded-lg p-4">
+            class="shadow-lg flex grid grid-rows-3 aspect-square bg-slate-800 rounded-lg p-4">
             <div class="">
-              Printer {{ printer }}
+              <b>Printer {{ printer }}</b>
             </div>
 
 
@@ -67,15 +82,20 @@
 
       <!-- Console section -->
       <div class="mt-8">
-        <div class="flex mb-2">
-          <b><i>Console</i></b>
+        <div class="flex items-end justify-between mb-2">
+          <b class="text-lg"><i>Console</i></b>
+          <button v-on:click="onPauseConsole()"
+            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+            <span v-if="!consolePause">Pause console</span>
+            <span v-else>Continue console</span>
+          </button>
         </div>
-        <div class="console-container bg-slate-800 overflow-auto p-4 text-white rounded-lg">
+        <div class="console-container bg-slate-800 overflow-auto p-4 text-white rounded-lg text-xs shadow-lg">
           <div>
-            <div class="flex" :key="subscription" v-for="subscription in Object.keys(subscriptions)">
-              {{ subscription }} {{ subscriptions[subscription] }}
+            <div class="flex" :key="subscription" v-for="subscription in consoleSubscriptions">
+              {{ subscription.time }} {{ subscription.topic }} {{ subscription.payload }}
             </div>
-            <div v-if="Object.keys(subscriptions).length == 0">
+            <div v-if="consoleSubscriptions.length == 0">
               <i>Nothing to show..</i>
             </div>
           </div>
@@ -98,8 +118,13 @@ export default {
 
   data() {
     return {
+      mqttConnected: false,
+      lastConnectionPublish: null,
+      connectionTimer: null,
       printers: [1, 2, 3, 4, 5, 6, 7],
-      subscriptions: {}
+      subscriptions: {},
+      consoleSubscriptions: [],
+      consolePause: false
     }
   },
 
@@ -110,15 +135,57 @@ export default {
 
     client.on('connect', function () {
       client.subscribe('mm/printing/status/+')
+      client.subscribe('mm/mqtt/printing/status')
     })
 
     client.on('message', (topic, payload) => {
-      this.subscriptions[topic] = JSON.parse(new TextDecoder().decode(payload));
+      if (topic.startsWith('mm/printing/status')) {
+        this.handlePrintStatusSubscription(topic, payload)
+      } else if (topic.startsWith('mm/mqtt/printing/status')) {
+        this.handlePrintServiceStatus()
+      }
     })
+    this.startConnectionTimer()
   },
 
+  beforeUnmount() {
+    clearTimeout(this.connectionTimer)
+  },
 
   methods: {
+
+    startConnectionTimer() {
+      this.connectionTimer = setTimeout(() => {
+        if (this.lastConnectionPublish) {
+          let diffMs = (new Date()) - this.lastConnectionPublish
+          let seconds = Math.floor((diffMs / 1000));
+          if (seconds > 60) {
+            this.mqttConnected = false
+          }
+        }
+        this.startConnectionTimer()
+      }, 6000)
+    },
+
+    handlePrintStatusSubscription(topic, payload) {
+      this.subscriptions[topic] = JSON.parse(new TextDecoder().decode(payload));
+      if (!this.consolePause) {
+        let now = new Date(Date.now())
+        this.consoleSubscriptions.unshift({
+          "time": now.toUTCString(),
+          "topic": topic,
+          "payload": JSON.parse(new TextDecoder().decode(payload))
+        })
+        if (this.consoleSubscriptions.length > 100) {
+          this.consoleSubscriptions.pop()
+        }
+      }
+    },
+
+    handlePrintServiceStatus() {
+      this.mqttConnected = true
+      this.lastConnectionPublish = new Date()
+    },
 
     onRestartServer() { },
 
@@ -126,10 +193,16 @@ export default {
 
     onSyncPrinters() { },
 
+    onPauseConsole() {
+      this.consolePause = !this.consolePause
+    },
+
     isPrinterProcessing(printerId) {
       let values = Object.keys(this.subscriptions).filter((entry) => {
         let payload = this.subscriptions[entry]
-        return payload.printer.id == printerId && payload.status == "PROCESSING"
+        if (payload.printer) {
+          return payload.printer.id == printerId && (payload.status == "PROCESSING" || payload.status == "HELD")
+        }
       })
       return values.length > 0
     }
@@ -149,5 +222,7 @@ export default {
 
 .console-container {
   height: 200px;
+  white-space: nowrap;
 
-}</style>
+}
+</style>

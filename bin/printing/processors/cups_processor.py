@@ -1,13 +1,11 @@
 
-import os
-
 from bin.printing.handler import PrintProcessor
 from bin.models.print_payload import PrintPayload
 
+from service.mqtt.publishers.status_publisher import StatusPublisher
+
 import cups
 import time
-
-import json
 
 
 class CupsProcessor(PrintProcessor):
@@ -43,19 +41,9 @@ class CupsProcessor(PrintProcessor):
             else:
                 status = "UNKNOWN"
 
-            self.publish(print_payload=print_payload, status=status)
+            StatusPublisher(self.client).publish(
+                print_payload=print_payload,
+                status=status
+            )
+
             time.sleep(0.5)
-
-    def publish(self, print_payload: PrintPayload, status: str):
-        status_topic = os.getenv("PRINT_STATUS_TOPIC", 'mm/printing/status/+')
-        status_topic = status_topic.replace('+', str(print_payload.identifier))
-
-        payload = {
-            "status": status,
-            "printer": {
-                "id": print_payload.printer.id,
-                "name": print_payload.printer.readable_name
-            }
-        }
-
-        self.client.publish(status_topic, json.dumps(payload))

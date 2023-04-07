@@ -3,6 +3,7 @@
 
 import os
 import threading
+import time
 
 from bin.processing.generator import PDFGenerator
 from bin.processing.merger import PDFMerger
@@ -13,6 +14,8 @@ from bin.models.print_payload import PrintPayload
 from bin.printing.handler import PrintHandler
 from bin.printing.processors.debug_processor import DebugProcessor
 from bin.printing.processors.cups_processor import CupsProcessor
+
+from service.mqtt.publishers.error_publisher import ErrorPublisher
 
 import paho.mqtt.client as mqtt
 from dotenv import load_dotenv
@@ -25,17 +28,9 @@ merger = PDFMerger()
 def on_connect(client, userdata, flags, rc):
     print("Connected with result code "+str(rc))
     print_topic: str = os.getenv("PRINT_TOPIC", 'mm/printing/print/+')
-    print_status_topic: str = os.getenv(
-        "PRINT_STATUS_TOPIC", 'mm/printing/status/+')
     client.subscribe(print_topic)
-    client.subscribe(print_status_topic)
     client.message_callback_add(print_topic, on_print_data)
-    client.message_callback_add(print_status_topic, on_print_status_data)
 
-
-def on_print_status_data(client, userdata, msg):
-    print("Recieved message on topic '%s' | Payload: %s" %
-          (msg.topic, msg.payload))
 
 def on_print_data(client, userdata, msg):
 
@@ -61,6 +56,8 @@ def on_print_data(client, userdata, msg):
             handler.print(print_payload=print_payload, pdf=merged_pdf)
         except BaseException as exception:
             print("Something went wrong (%s)" % (type(exception).__name__))
+            ErrorPublisher(client).publish(
+                topic_id=topic_id, exception=type(exception).__name__)
 
     # Make the processing non locking:
     t = threading.Thread(target=process_message)
@@ -86,4 +83,6 @@ if __name__ == "__main__":
 
     # Keep open:
     while True:
-        pass
+        status_topic = os.getenv("SERVICE_STATUS_TOPIC", 'mm/mqtt/printing/status')
+        client.publish(status_topic, "")
+        time.sleep(5)
