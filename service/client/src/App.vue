@@ -9,12 +9,19 @@
           <b><i>Options</i></b>
         </div>
         <div class="grid grid-cols-4 gap-4">
-          <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+          <button v-on:click="onRestartServer()"
+            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
             Restart server
           </button>
 
-          <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+          <button v-on:click="onClearAllJobs()"
+            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
             Clear all jobs
+          </button>
+
+          <button v-on:click="onSyncPrinters()"
+            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+            Sync printers
           </button>
         </div>
 
@@ -113,6 +120,12 @@ export default {
 
   methods: {
 
+    onRestartServer() { },
+
+    onClearAllJobs() { },
+
+    onSyncPrinters() { },
+
     isPrinterProcessing(printerId) {
       let values = Object.keys(this.subscriptions).filter((entry) => {
         let payload = this.subscriptions[entry]
@@ -137,5 +150,4 @@ export default {
 .console-container {
   height: 200px;
 
-}
-</style>
+}</style>
