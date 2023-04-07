@@ -10,5 +10,5 @@ class DebugProcessor(PrintProcessor):
 
         print("DEBUG: Print path: %s" % (path))
         print("DEBUG: Printing on printer: %s" %
-              (print_payload.printer.progressor_identifier))
+              (print_payload.printer))
         print("DEBUG: Printing: %i pages" % (len(pdf.pages)))

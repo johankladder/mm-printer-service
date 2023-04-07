@@ -23,7 +23,7 @@
         <div class="flex mb-2 text-xl">
           <b><i>Options</i></b>
         </div>
-        <div class="grid grid-cols-4 xl:grid-cols-6  gap-4">
+        <div class="grid grid-cols-4 xl:grid-cols-8  gap-4">
           <button v-on:click="onRestartServer()"
             class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
             Restart server
@@ -47,13 +47,12 @@
         <div class="flex mb-2 text-xl">
           <b><i>Printers</i></b>
         </div>
-        <div class="text-white grid grid-cols-4 xl:grid-cols-6 gap-4">
+        <div class="text-white grid grid-cols-4 xl:grid-cols-8 gap-4">
           <div :key="printer" v-for="printer in printers"
             class="shadow-lg flex grid grid-rows-3 aspect-square bg-slate-800 rounded-lg p-4">
-            <div class="">
-              <b>Printer {{ printer }}</b>
+            <div class="overflow-hidden truncate">
+              <b>{{ printer.queue_name }}</b>
             </div>
-
 
             <div class="flex items-center justify-center grow ">
               <div v-if="isPrinterProcessing(printer)" class="flex items-center justify-center grow ">
@@ -69,8 +68,9 @@
               </div>
             </div>
 
-            <div class="flex items-end justify-center ">
-              <button class="items-end bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+            <div class="flex items-end ">
+              <button v-on:click="onClearAllJobs(printer)"
+                class="items-end bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
                 Clear jobs
               </button>
             </div>
@@ -108,6 +108,7 @@
 <script>
 
 import mqtt from "mqtt/dist/mqtt";
+import axios from 'axios'
 
 
 export default {
@@ -121,7 +122,7 @@ export default {
       mqttConnected: false,
       lastConnectionPublish: null,
       connectionTimer: null,
-      printers: [1, 2, 3, 4, 5, 6, 7],
+      printers: [],
       subscriptions: {},
       consoleSubscriptions: [],
       consolePause: false
@@ -146,6 +147,7 @@ export default {
       }
     })
     this.startConnectionTimer()
+    this.onSyncPrinters()
   },
 
   beforeUnmount() {
@@ -187,21 +189,34 @@ export default {
       this.lastConnectionPublish = new Date()
     },
 
-    onRestartServer() { },
+    onRestartServer() {
+      axios.post("http://localhost:4000/server/restart")
+    },
 
-    onClearAllJobs() { },
+    onClearAllJobs(printer) {
+      if (!printer) {
+        axios.post("http://localhost:4000/cups/cancel-all-jobs")
+      } else {
+        axios.post("http://localhost:4000/cups/cancel-jobs", {
+          'queue_name': printer.queue_name
+        })
+      }
+    },
 
-    onSyncPrinters() { },
+    onSyncPrinters() {
+      axios.get("http://localhost:4000/cups/printers")
+        .then(({data}) => this.printers = data)
+    },
 
     onPauseConsole() {
       this.consolePause = !this.consolePause
     },
 
-    isPrinterProcessing(printerId) {
+    isPrinterProcessing(printer) {
       let values = Object.keys(this.subscriptions).filter((entry) => {
         let payload = this.subscriptions[entry]
         if (payload.printer) {
-          return payload.printer.id == printerId && (payload.status == "PROCESSING" || payload.status == "HELD")
+          return payload.printer.queue_name == printer.queue_name && (payload.status == "PROCESSING" || payload.status == "HELD")
         }
       })
       return values.length > 0

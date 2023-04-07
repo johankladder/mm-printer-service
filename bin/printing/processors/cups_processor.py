@@ -7,14 +7,13 @@ from service.mqtt.publishers.status_publisher import StatusPublisher
 import cups
 import time
 
-
 class CupsProcessor(PrintProcessor):
 
     def print_page(self, print_payload: PrintPayload, path: str):
 
         conn = cups.Connection()
         job_id = conn.printFile(
-            print_payload.printer.progressor_identifier,
+            print_payload.printer,
             path,
             'test',
             {}
@@ -43,7 +42,7 @@ class CupsProcessor(PrintProcessor):
 
             StatusPublisher(self.client).publish(
                 print_payload=print_payload,
-                status=status
+                status = status
             )
-
+       
             time.sleep(0.5)

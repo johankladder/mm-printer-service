@@ -1,12 +1,7 @@
 
 import json
 
-from sqlalchemy.orm import Session as AlchemySession
-from bin.database.database import SessionLocal
 from bin.models.print_payload import PrintPayload
-
-from bin.database.models import Printer
-
 
 class PayloadParser():
 
@@ -22,14 +17,9 @@ class PayloadParser():
         return self.__create_model_from_data(data)
 
     def __create_model_from_data(self, data: any):
-
-        session: AlchemySession = SessionLocal()
-
         base_64 = data['base64']
         pages = data['pages']
-
-        printer = session.query(Printer).filter(
-            Printer.remote_identifier == data['printer']).first()
+        printer = data['printer']
 
         if not printer:
             raise PrinterNotExistException()
