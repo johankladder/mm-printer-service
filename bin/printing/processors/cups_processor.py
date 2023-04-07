@@ -7,6 +7,8 @@ from bin.models.print_payload import PrintPayload
 import cups
 import time
 
+import json
+
 
 class CupsProcessor(PrintProcessor):
 
@@ -47,4 +49,13 @@ class CupsProcessor(PrintProcessor):
     def publish(self, print_payload: PrintPayload, status: str):
         status_topic = os.getenv("PRINT_STATUS_TOPIC", 'mm/printing/status/+')
         status_topic = status_topic.replace('+', str(print_payload.identifier))
-        self.client.publish(status_topic, status)
+
+        payload = {
+            "status": status,
+            "printer": {
+                "id": print_payload.printer.id,
+                "name": print_payload.printer.readable_name
+            }
+        }
+
+        self.client.publish(status_topic, json.dumps(payload))
