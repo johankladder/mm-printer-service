@@ -191,21 +191,21 @@ export default {
     },
 
     onRestartServer() {
-      axios.post("http://localhost:4000/server/restart")
+      axios.post(process.env.VUE_APP_FLASK_HOST + "/server/restart")
     },
 
     onClearAllJobs(printer) {
       if (!printer) {
-        axios.post("http://localhost:4000/cups/cancel-all-jobs")
+        axios.post(process.env.VUE_APP_FLASK_HOST + "/cups/cancel-all-jobs")
       } else {
-        axios.post("http://localhost:4000/cups/cancel-jobs", {
+        axios.post(process.env.VUE_APP_FLASK_HOST + "/cups/cancel-jobs", {
           'queue_name': printer.queue_name
         })
       }
     },
 
     onSyncPrinters() {
-      axios.get("http://localhost:4000/cups/printers")
+      axios.get(process.env.VUE_APP_FLASK_HOST +"/cups/printers")
         .then(({data}) => this.printers = data)
     },
 
