@@ -23,7 +23,7 @@
         <div class="flex mb-2 text-xl">
           <b><i>Options</i></b>
         </div>
-        <div class="grid grid-cols-4 xl:grid-cols-8  gap-4">
+        <div class="grid grid-cols-3 xl:grid-cols-8  gap-4">
           <button v-on:click="onRestartServer()"
             class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
             Restart server
@@ -47,7 +47,7 @@
         <div class="flex mb-2 text-xl">
           <b><i>Printers</i></b>
         </div>
-        <div class="text-white grid grid-cols-4 xl:grid-cols-8 gap-4">
+        <div class="text-white grid grid-cols-3 xl:grid-cols-8 gap-4">
           <div :key="printer" v-for="printer in printers"
             class="shadow-lg flex grid grid-rows-3 aspect-square bg-slate-800 rounded-lg p-4">
             <div class="overflow-hidden truncate">
@@ -145,10 +145,11 @@ export default {
         this.handlePrintStatusSubscription(topic, payload)
       } else if (topic.startsWith('mm/mqtt/printing/status')) {
         this.handlePrintServiceStatus()
+        this.onSyncPrinters()
       }
     })
     this.startConnectionTimer()
-    this.onSyncPrinters()
+
   },
 
   beforeUnmount() {

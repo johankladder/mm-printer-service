@@ -1,4 +1,5 @@
 # Run command: flask --app service.rest run --port=4000
+# Production: gunicorn -w 4 -b 0.0.0.0:4000 service.rest:app
 
 
 from flask import Flask
