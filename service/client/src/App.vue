@@ -130,7 +130,8 @@ export default {
   },
 
   mounted() {
-    var client = mqtt.connect('mqtt://localhost', {
+
+    var client = mqtt.connect('mqtt://' + process.env.VUE_APP_MQTT_HOST, {
       port: 9001
     });
 
