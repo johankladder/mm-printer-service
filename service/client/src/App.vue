@@ -4,12 +4,12 @@
     <div class="m-8">
 
       <div class="flex items-end justify-between">
-        <h1 class="font-bold text-3xl">
+        <h1 class="font-bold text-4xl">
           Print server
         </h1>
         <div class="font-bold">
           <div v-if="mqttConnected" class="bg-green-200 p-4 rounded-lg shadow-lg">
-            Ready for jobs
+            <i>Ready for jobs</i>
           </div>
           <div v-else class="bg-red-500 p-4 rounded-lg text-white shadow-lg">
             Not online!
@@ -23,7 +23,7 @@
         <div class="flex mb-2 text-xl">
           <b><i>Options</i></b>
         </div>
-        <div class="grid grid-cols-3 xl:grid-cols-8  gap-4">
+        <div class="grid grid-cols-3 xl:grid-cols-8 gap-4">
           <button v-on:click="onRestartServer()"
             class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
             Restart server
