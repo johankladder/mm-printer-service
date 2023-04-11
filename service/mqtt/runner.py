@@ -11,9 +11,10 @@ from bin.processing.payload_parser import PayloadParser
 
 from bin.models.print_payload import PrintPayload
 
-from bin.printing.handler import PrintHandler
+from bin.printing.handler import PrintHandler, PrintProcessor
 from bin.printing.processors.debug_processor import DebugProcessor
 from bin.printing.processors.cups_processor import CupsProcessor
+
 
 from service.mqtt.publishers.error_publisher import ErrorPublisher
 
@@ -35,15 +36,24 @@ def on_connect(client, userdata, flags, rc):
 def on_print_data(client, userdata, msg):
 
     def process_message():
-        print("Recieved message on topic '%s'" % (msg.topic))
         topic_id = msg.topic.split("/")[3]
+
+        processor_map = {
+            'debug': DebugProcessor(client),
+            'cups': CupsProcessor(client)
+        }
+
+        processors_from_env: list[str] = os.getenv(
+            "PROCESSORS", 'debug').split(',')
+
+        processors = []
+
+        for processor in processors_from_env:
+            processors.append(processor_map[processor])
 
         try:
             handler = PrintHandler(
-                processors=[
-                    DebugProcessor(client),
-                    CupsProcessor(client)
-                ]
+                processors
             )
 
             print_payload: PrintPayload = payload_parser.parse_payload(
@@ -83,6 +93,7 @@ if __name__ == "__main__":
 
     # Keep open:
     while True:
-        status_topic = os.getenv("SERVICE_STATUS_TOPIC", 'mm/mqtt/printing/status')
+        status_topic = os.getenv(
+            "SERVICE_STATUS_TOPIC", 'mm/mqtt/printing/status')
         client.publish(status_topic, "")
         time.sleep(5)
