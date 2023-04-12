@@ -2,13 +2,9 @@
   <div id="app">
 
     <div class="m-8">
-
-      <div class="flex items-end justify-between">
-        <h1 class="font-bold text-4xl">
-          Print server
-        </h1>
-        <div class="font-bold">
-          <div v-if="mqttConnected" class="bg-green-200 p-4 rounded-lg shadow-lg">
+      <div class="flex">
+        <div class="grow font-bold">
+          <div v-if="mqttConnected" class="bg-green-200 p-4 rounded-xl shadow-lg">
             <i>Ready for jobs</i>
           </div>
           <div v-else class="bg-red-500 p-4 rounded-lg text-white shadow-lg">
@@ -20,22 +16,22 @@
 
       <!-- Options section -->
       <div class="mt-8">
-        <div class="flex mb-2 text-xl">
+        <div class="flex mb-2 text-4xl">
           <b><i>Options</i></b>
         </div>
         <div class="grid grid-cols-3 xl:grid-cols-8 gap-4">
           <button v-on:click="onRestartServer()"
-            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-8 px-8 rounded-xl shadow-lg">
             Restart server
           </button>
 
           <button v-on:click="onClearAllJobs()"
-            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-8 px-8 rounded-xl shadow-lg">
             Clear all jobs
           </button>
 
           <button v-on:click="onSyncPrinters()"
-            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-8 px-8 rounded-xl shadow-lg">
             Sync printers
           </button>
         </div>
@@ -44,13 +40,13 @@
 
       <!-- Printer section -->
       <div class="mt-8">
-        <div class="flex mb-2 text-xl">
+        <div class="flex mb-2 text-4xl">
           <b><i>Printers</i></b>
         </div>
         <div class="text-white grid grid-cols-4 xl:grid-cols-8 gap-4">
           <div :key="printer" v-for="printer in printers"
             class="shadow-lg flex grid grid-rows-3 aspect-square bg-slate-800 rounded-lg p-4">
-            <div class="overflow-hidden truncate">
+            <div class="flex overflow-hidden truncate text-xl">
               <b>{{ printer.queue_name }}</b>
             </div>
 
@@ -70,7 +66,7 @@
 
             <div class="flex items-end ">
               <button v-on:click="onClearAllJobs(printer)"
-                class="items-end bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                class="items-end bg-blue-500 hover:bg-blue-700 text-white font-bold py-4 px-4 rounded grow">
                 Clear jobs
               </button>
             </div>
@@ -83,9 +79,9 @@
       <!-- Console section -->
       <div class="mt-8">
         <div class="flex items-end justify-between mb-2">
-          <b class="text-lg"><i>Console</i></b>
+          <b class="text-4xl"><i>Console</i></b>
           <button v-on:click="onPauseConsole()"
-            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-4 px-4 rounded-xl shadow-lg">
             <span v-if="!consolePause">Pause console</span>
             <span v-else>Continue console</span>
           </button>
@@ -206,8 +202,8 @@ export default {
     },
 
     onSyncPrinters() {
-      axios.get(process.env.VUE_APP_FLASK_HOST +"/cups/printers")
-        .then(({data}) => this.printers = data)
+      axios.get(process.env.VUE_APP_FLASK_HOST + "/cups/printers")
+        .then(({ data }) => this.printers = data)
     },
 
     onPauseConsole() {
