@@ -14,5 +14,5 @@ def ping():
 
 @server_views.route("/server/restart", methods = ["POST"])
 def restart():
-    os.system('reboot now')
+    os.system('sudo reboot')
     return "OK"
