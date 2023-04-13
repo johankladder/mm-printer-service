@@ -26,6 +26,21 @@ generator = PDFGenerator()
 merger = PDFMerger()
 
 
+def get_connected_client():
+    location = os.getenv("MQTT_HOST", 'localhost')
+    port = int(os.getenv("MQTT_PORT", 1883))
+
+    client = mqtt.Client()
+    client.on_connect = on_connect
+    client.username_pw_set(
+        username=os.getenv("MQTT_USER", ''),
+        password=os.getenv("MQTT_PASSWORD", '')
+    )
+
+    client.connect(location, port, 60)
+    return client
+
+
 def on_connect(client, userdata, flags, rc):
     print("Connected with result code "+str(rc))
     print_topic: str = os.getenv("PRINT_TOPIC", 'mm/printing/print/+')
@@ -34,6 +49,8 @@ def on_connect(client, userdata, flags, rc):
 
 
 def on_print_data(client, userdata, msg):
+
+    print("received")
 
     def process_message():
         topic_id = msg.topic.split("/")[3]
@@ -78,17 +95,7 @@ if __name__ == "__main__":
 
     load_dotenv()
 
-    location = os.getenv("MQTT_HOST", 'localhost')
-    port = int(os.getenv("MQTT_PORT", 1883))
-
-    client = mqtt.Client()
-    client.on_connect = on_connect
-    client.username_pw_set(
-        username=os.getenv("MQTT_USER", ''),
-        password=os.getenv("MQTT_PASSWORD", '')
-    )
-
-    client.connect(location, port, 60)
+    client = get_connected_client()
     client.loop_start()
 
     # Keep open:

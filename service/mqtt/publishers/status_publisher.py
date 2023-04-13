@@ -20,7 +20,8 @@ class StatusPublisher():
         payload = {
             "status": status,
             "printer": {
-                "queue_name": print_payload.printer
+                "queue_name": print_payload.printer,
+                "pages": print_payload.pages
             }
         }
         self.client.publish(topic, payload=json.dumps(payload))

@@ -45,12 +45,12 @@
         </div>
         <div class="text-white grid grid-cols-4 xl:grid-cols-8 gap-4">
           <div :key="printer" v-for="printer in printers"
-            class="shadow-lg flex grid grid-rows-3 aspect-square bg-slate-800 rounded-lg p-4">
+            class="shadow-lg flex grid aspect-square bg-slate-800 rounded-lg p-4">
             <div class="flex overflow-hidden truncate text-xl">
               <b>{{ printer.queue_name }}</b>
             </div>
 
-            <div class="flex items-center justify-center grow ">
+            <div class="flex items-center justify-center ">
               <div v-if="isPrinterProcessing(printer)" class="flex items-center justify-center grow ">
                 <svg aria-hidden="true" class="w-8 h-8 mr-2 text-white-200 animate-spin dark:text-gray-600 fill-blue-600"
                   viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -64,11 +64,19 @@
               </div>
             </div>
 
-            <div class="flex items-end ">
-              <button v-on:click="onClearAllJobs(printer)"
-                class="items-end bg-blue-500 hover:bg-blue-700 text-white font-bold py-4 px-4 rounded grow">
-                Clear jobs
-              </button>
+            <div class="flex justify-between items-end">
+              <div>
+                <button v-on:click="onTestPage(printer)"
+                  class="items-end bg-blue-500 hover:bg-blue-700 text-white font-bold py-4 px-4 rounded grow">
+                  Test page
+                </button>
+              </div>
+              <div>
+                <button v-on:click="onClearAllJobs(printer)"
+                  class="items-end bg-blue-500 hover:bg-blue-700 text-white font-bold py-4 px-4 rounded grow">
+                  Clear jobs
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -199,6 +207,12 @@ export default {
           'queue_name': printer.queue_name
         })
       }
+    },
+
+    onTestPage(printer) {
+      axios.post(process.env.VUE_APP_FLASK_HOST + "/cups/test-page", {
+        'queue_name': printer.queue_name
+      })
     },
 
     onSyncPrinters() {
