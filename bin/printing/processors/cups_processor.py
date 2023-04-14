@@ -55,8 +55,7 @@ class CupsProcessor(PrintProcessor):
 
             StatusPublisher(self.client).publish(
                 print_payload=print_payload,
-                status=status,
-                debug=self.options
+                status=status
             )
 
             time.sleep(0.5)
