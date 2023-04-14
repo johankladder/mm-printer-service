@@ -9,14 +9,24 @@ import time
 
 class CupsProcessor(PrintProcessor):
 
-    def print_page(self, print_payload: PrintPayload, path: str):
+    options = {
+        "fit-to-page": "True",
+        "landscape": "True",
+    }
 
+    def print_page(self, print_payload: PrintPayload, path: str):
         conn = cups.Connection()
+
+        # Retrieve media format of label printer:
+        attributes = conn.getPrinterAttributes(print_payload.printer)
+        default_media_size = attributes.get("media-default", "na_letter")
+        self.options["media"] = default_media_size
+
         job_id = conn.printFile(
             print_payload.printer,
             path,
-            'test',
-            {}
+            'Print job',
+            self.options
         )
 
         completed = False
@@ -42,7 +52,7 @@ class CupsProcessor(PrintProcessor):
 
             StatusPublisher(self.client).publish(
                 print_payload=print_payload,
-                status = status
+                status=status
             )
-       
+
             time.sleep(0.5)
