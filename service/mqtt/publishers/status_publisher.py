@@ -15,13 +15,14 @@ class StatusPublisher():
         status_topic = os.getenv("PRINT_STATUS_TOPIC", 'mm/printing/status/+')
         return status_topic.replace('+', str(print_payload.identifier))
 
-    def publish(self, print_payload: PrintPayload, status: str):
+    def publish(self, print_payload: PrintPayload, status: str, debug: dict = {}):
         topic = self.get_topic(print_payload=print_payload)
         payload = {
             "status": status,
             "printer": {
                 "queue_name": print_payload.printer,
                 "pages": print_payload.pages
-            }
+            },
+            "debug": json.dumps(debug)
         }
         self.client.publish(topic, payload=json.dumps(payload))

@@ -1,4 +1,3 @@
-
 from bin.printing.handler import PrintProcessor
 from bin.models.print_payload import PrintPayload
 
@@ -6,16 +5,20 @@ from service.mqtt.publishers.status_publisher import StatusPublisher
 
 import cups
 import time
+import os
+
 
 class CupsProcessor(PrintProcessor):
 
     options = {
         "fit-to-page": "True",
-        "landscape": "True",
     }
 
     def print_page(self, print_payload: PrintPayload, path: str):
         conn = cups.Connection()
+
+        # two_pages_test_path = os.path.join(
+        #     os.getcwd(), "tests/resources/test-2-pages.pdf")
 
         # Retrieve media format of label printer:
         attributes = conn.getPrinterAttributes(print_payload.printer)
@@ -52,7 +55,8 @@ class CupsProcessor(PrintProcessor):
 
             StatusPublisher(self.client).publish(
                 print_payload=print_payload,
-                status=status
+                status=status,
+                debug=self.options
             )
 
             time.sleep(0.5)
