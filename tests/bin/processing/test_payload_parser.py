@@ -22,6 +22,7 @@ def test_valid_payload(parser: PayloadParser):
     assert print_payload.base64 == "1234"
     assert print_payload.pages == []
     assert print_payload.printer == "printer_1"
+    assert print_payload.exclude == False
 
 
 def test_valid_payload_multi_pages(parser: PayloadParser):
@@ -30,3 +31,13 @@ def test_valid_payload_multi_pages(parser: PayloadParser):
     assert print_payload.base64 == "1234"
     assert print_payload.pages == [1, 2]
     assert print_payload.printer == "printer_1"
+    assert print_payload.exclude == False
+
+
+def test_valid_payload_with_exclude(parser: PayloadParser):
+    print_payload: PrintPayload = parser.parse_payload(
+        payload='{"base64":"1234","printer": "printer_1" ,"pages":[],"id":1, "exclude": true}')
+    assert print_payload.base64 == "1234"
+    assert print_payload.pages == []
+    assert print_payload.printer == "printer_1"
+    assert print_payload.exclude == True

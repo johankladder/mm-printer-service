@@ -20,6 +20,7 @@ class PayloadParser():
         base_64 = data['base64']
         pages = data['pages']
         printer = data['printer']
+        exclude = data.get('exclude', False)
 
         if not printer:
             raise PrinterNotExistException()
@@ -30,7 +31,8 @@ class PayloadParser():
         return PrintPayload(
             base64=base_64,
             printer=printer,
-            pages=pages
+            pages=pages,
+            exclude=exclude
         )
 
 
