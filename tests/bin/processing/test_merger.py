@@ -38,10 +38,23 @@ def test_merge_into_zero_page(merger: PDFMerger, pdf: PdfReader):
         merger.merge(pdf=pdf, pages=[])
 
 
+def test_merge_into_zero_page_when_exlude_all(merger: PDFMerger, pdf: PdfReader):
+    with pytest.raises(EmptyPDFException):
+        merger.merge(pdf=pdf, pages=[0, 1], exclude=True)
+
+
 def test_merge_into_single_page(merger: PDFMerger, pdf: PdfReader):
     reader = merger.merge(pdf=pdf, pages=[0])
     assert len(reader.pages) == 1
 
+def test_merge_into_single_page_with_exclude(merger: PDFMerger, pdf: PdfReader):
+    reader = merger.merge(pdf=pdf, pages=[0], exclude=True)
+    assert len(reader.pages) == 1
+
+
+def test_merge_into_double_page_with_exclude_empty(merger: PDFMerger, pdf: PdfReader):
+    reader = merger.merge(pdf=pdf, pages=[], exclude=True)
+    assert len(reader.pages) == 2
 
 def test_merge_into_multi_page(merger: PDFMerger, pdf: PdfReader):
     reader = merger.merge(pdf=pdf, pages=[0, 1])
