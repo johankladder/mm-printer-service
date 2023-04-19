@@ -41,3 +41,12 @@ def test_valid_payload_with_exclude(parser: PayloadParser):
     assert print_payload.pages == []
     assert print_payload.printer == "printer_1"
     assert print_payload.exclude == True
+
+
+def test_valid_payload_with_url(parser: PayloadParser):
+    print_payload: PrintPayload = parser.parse_payload(
+        payload='{"url":"https://www.google.nl","printer": "printer_1" ,"pages":[],"id":1}')
+    assert print_payload.url == "https://www.google.nl"
+    assert print_payload.pages == []
+    assert print_payload.printer == "printer_1"
+    assert print_payload.exclude == False
