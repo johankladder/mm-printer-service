@@ -78,7 +78,7 @@ def on_print_data(client, userdata, msg):
             )
             print_payload.identifier = topic_id
 
-            base_pdf = generator.generate(base64=print_payload.base64)
+            base_pdf = generator.generate(payload=print_payload)
             merged_pdf = merger.merge(
                 pdf=base_pdf, pages=print_payload.pages, exclude=print_payload.exclude)
             handler.print(print_payload=print_payload, pdf=merged_pdf)
