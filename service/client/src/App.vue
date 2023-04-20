@@ -51,7 +51,8 @@
             </div>
 
             <div class="flex items-center justify-center text-xl ">
-              <div v-if="printerStatuses[printer.queue_name] == 4" class="flex items-center justify-center grow text-white ">
+              <div v-if="printerStatuses[printer.queue_name] == 4"
+                class="flex items-center justify-center grow text-white ">
                 <svg aria-hidden="true" class="w-8 h-8 mr-2 text-white-200 animate-spin dark:text-gray-600 fill-blue-600"
                   viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path
@@ -62,8 +63,11 @@
                     fill="currentFill" />
                 </svg>
               </div>
-              <div v-else-if="printerStatuses[printer.queue_name] == 3"  class="text-4xl" >👌</div>
-              <div v-else-if="printerStatuses[printer.queue_name] == undefined" class="bg-yellow-400 p-4 rounded-xl font-bold">Laden...</div>
+              <div v-else-if="printerStatuses[printer.queue_name] == 3" class="bg-green-200 p-4 rounded-xl font-bold">
+                <i>Ready</i>
+              </div>
+              <div v-else-if="printerStatuses[printer.queue_name] == undefined"
+                class="bg-yellow-400 p-4 rounded-xl font-bold">Laden...</div>
               <div v-else class="bg-red-500 p-4 rounded-xl font-bold text-white">Error</div>
             </div>
 
@@ -254,5 +258,4 @@ export default {
   height: 200px;
   white-space: nowrap;
 
-}
-</style>
+}</style>
