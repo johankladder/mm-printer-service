@@ -43,14 +43,14 @@
         <div class="flex mb-2 text-4xl">
           <b><i>Printers</i></b>
         </div>
-        <div class=" grid grid-cols-4 xl:grid-cols-8 gap-4">
+        <div class=" grid grid-cols-3 xl:grid-cols-8 gap-4">
           <div :key="printer" v-for="printer in printers"
             class="shadow-lg flex grid aspect-square bg-slate-800 rounded-lg p-4">
             <div class="flex overflow-hidden truncate text-xl text-white">
               <b>{{ printer.queue_name }}</b>
             </div>
 
-            <div class="flex items-center justify-center ">
+            <div class="flex items-center justify-center text-xl ">
               <div v-if="printerStatuses[printer.queue_name] == 4" class="flex items-center justify-center grow text-white ">
                 <svg aria-hidden="true" class="w-8 h-8 mr-2 text-white-200 animate-spin dark:text-gray-600 fill-blue-600"
                   viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -62,21 +62,21 @@
                     fill="currentFill" />
                 </svg>
               </div>
-              <div v-else-if="printerStatuses[printer.queue_name] == 3"  class="bg-green-200 p-4 rounded-xl font-bold" >Idle</div>
-              <div v-else-if="printerStatuses[printer.queue_name] == undefined" class="bg-yellow-400 p-4 rounded-xl font-bold">Loading</div>
-              <div v-else class="bg-red-500 p-4 rounded-xl font-bold">Error</div>
+              <div v-else-if="printerStatuses[printer.queue_name] == 3"  class="text-4xl" >👌</div>
+              <div v-else-if="printerStatuses[printer.queue_name] == undefined" class="bg-yellow-400 p-4 rounded-xl font-bold">Laden...</div>
+              <div v-else class="bg-red-500 p-4 rounded-xl font-bold text-white">Error</div>
             </div>
 
             <div class="flex justify-between items-end">
               <div>
                 <button v-on:click="onTestPage(printer)"
-                  class="items-end bg-blue-500 hover:bg-blue-700 text-white font-bold py-4 px-4 rounded grow">
+                  class="items-end bg-blue-500 hover:bg-blue-700 text-white font-bold py-4 px-4 rounded-xl grow">
                   Test page
                 </button>
               </div>
               <div>
                 <button v-on:click="onClearAllJobs(printer)"
-                  class="items-end bg-blue-500 hover:bg-blue-700 text-white font-bold py-4 px-4 rounded grow">
+                  class="items-end bg-blue-500 hover:bg-blue-700 text-white font-bold py-4 px-4 rounded-xl grow">
                   Clear jobs
                 </button>
               </div>

@@ -89,7 +89,7 @@ def process_printer_status(printer_name, queue):
         state = conn.getPrinterAttributes(printer_name)['printer-state']
         publisher = PrinterStatusPublisher(client)
         publisher.publish(printer_name=printer_name, status=state)
-        time.sleep(5)
+        time.sleep(1)
 
 
 def process_printer_messages(printer_name, queue):
