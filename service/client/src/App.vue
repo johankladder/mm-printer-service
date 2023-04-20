@@ -43,15 +43,15 @@
         <div class="flex mb-2 text-4xl">
           <b><i>Printers</i></b>
         </div>
-        <div class="text-white grid grid-cols-4 xl:grid-cols-8 gap-4">
+        <div class=" grid grid-cols-4 xl:grid-cols-8 gap-4">
           <div :key="printer" v-for="printer in printers"
             class="shadow-lg flex grid aspect-square bg-slate-800 rounded-lg p-4">
-            <div class="flex overflow-hidden truncate text-xl">
+            <div class="flex overflow-hidden truncate text-xl text-white">
               <b>{{ printer.queue_name }}</b>
             </div>
 
             <div class="flex items-center justify-center ">
-              <div v-if="isPrinterProcessing(printer)" class="flex items-center justify-center grow ">
+              <div v-if="printerStatuses[printer.queue_name] == 4" class="flex items-center justify-center grow text-white ">
                 <svg aria-hidden="true" class="w-8 h-8 mr-2 text-white-200 animate-spin dark:text-gray-600 fill-blue-600"
                   viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path
@@ -62,6 +62,9 @@
                     fill="currentFill" />
                 </svg>
               </div>
+              <div v-else-if="printerStatuses[printer.queue_name] == 3"  class="bg-green-200 p-4 rounded-xl font-bold" >Idle</div>
+              <div v-else-if="printerStatuses[printer.queue_name] == undefined" class="bg-yellow-400 p-4 rounded-xl font-bold">Loading</div>
+              <div v-else class="bg-red-500 p-4 rounded-xl font-bold">Error</div>
             </div>
 
             <div class="flex justify-between items-end">
@@ -129,7 +132,8 @@ export default {
       printers: [],
       subscriptions: {},
       consoleSubscriptions: [],
-      consolePause: false
+      consolePause: false,
+      printerStatuses: {}
     }
   },
 
@@ -142,6 +146,7 @@ export default {
     client.on('connect', function () {
       client.subscribe('mm/printing/status/+')
       client.subscribe('mm/mqtt/printing/status')
+      client.subscribe('mm/printing/printer/status/+')
     })
 
     client.on('message', (topic, payload) => {
@@ -150,6 +155,8 @@ export default {
       } else if (topic.startsWith('mm/mqtt/printing/status')) {
         this.handlePrintServiceStatus()
         this.onSyncPrinters()
+      } else if (topic.startsWith('mm/printing/printer/status/')) {
+        this.handlePrinterStatusSubscription(topic, payload)
       }
     })
     this.startConnectionTimer()
@@ -173,6 +180,12 @@ export default {
         }
         this.startConnectionTimer()
       }, 6000)
+    },
+
+    handlePrinterStatusSubscription(topic, payload) {
+      let data = JSON.parse(new TextDecoder().decode(payload));
+      let printerName = topic.split('/')[4]
+      this.printerStatuses[printerName] = data.status
     },
 
     handlePrintStatusSubscription(topic, payload) {
@@ -222,16 +235,6 @@ export default {
 
     onPauseConsole() {
       this.consolePause = !this.consolePause
-    },
-
-    isPrinterProcessing(printer) {
-      let values = Object.keys(this.subscriptions).filter((entry) => {
-        let payload = this.subscriptions[entry]
-        if (payload.printer) {
-          return payload.printer.queue_name == printer.queue_name && (payload.status == "PROCESSING" || payload.status == "HELD")
-        }
-      })
-      return values.length > 0
     }
 
   }
