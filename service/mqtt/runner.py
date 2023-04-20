@@ -11,7 +11,7 @@ from bin.processing.payload_parser import PayloadParser
 
 from bin.models.print_payload import PrintPayload
 
-from bin.printing.handler import PrintHandler, PrintProcessor
+from bin.printing.handler import PrintHandler
 from bin.printing.processors.debug_processor import DebugProcessor
 from bin.printing.processors.cups_processor import CupsProcessor
 
@@ -24,6 +24,7 @@ from dotenv import load_dotenv
 payload_parser = PayloadParser()
 generator = PDFGenerator()
 merger = PDFMerger()
+processors = []
 
 
 def get_connected_client():
@@ -46,28 +47,27 @@ def on_connect(client, userdata, flags, rc):
     print_topic: str = os.getenv("PRINT_TOPIC", 'mm/printing/print/+')
     client.subscribe(print_topic)
     client.message_callback_add(print_topic, on_print_data)
+    construct_processors(client=client)
+
+
+def construct_processors(client):
+    processor_map = {
+        'debug': DebugProcessor(client),
+        'cups': CupsProcessor(client)
+    }
+
+    processors_from_env: list[str] = os.getenv(
+        "PROCESSORS", 'debug').split(',')
+
+    processors = []
+    for processor in processors_from_env:
+        processors.append(processor_map[processor])
 
 
 def on_print_data(client, userdata, msg):
 
-    print("received")
-
     def process_message():
         topic_id = msg.topic.split("/")[3]
-
-        processor_map = {
-            'debug': DebugProcessor(client),
-            'cups': CupsProcessor(client)
-        }
-
-        processors_from_env: list[str] = os.getenv(
-            "PROCESSORS", 'debug').split(',')
-
-        processors = []
-
-        for processor in processors_from_env:
-            processors.append(processor_map[processor])
-
         try:
             handler = PrintHandler(
                 processors
