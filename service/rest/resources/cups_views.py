@@ -1,5 +1,7 @@
 from flask import Blueprint, request
 
+from bin.util.cups import get_all_cups_printers
+
 from service.mqtt.runner import get_connected_client
 
 import os
@@ -29,19 +31,11 @@ def cancel_jobs():
 
 @cups_views.route("/cups/printers", methods=['GET'])
 def get_all_printers():
-
-    lpstat_output = subprocess.check_output(['lpstat', '-a'], text=True)
-
-    # Split the output by lines
-    lpstat_lines = lpstat_output.splitlines()
-
     printers = []
-    for line in lpstat_lines:
-        printer_name = line.split()[0]
+    for cup_printer in get_all_cups_printers():
         printers.append({
-            "queue_name": printer_name
+            "queue_name": cup_printer
         })
-
     return printers
 
 
