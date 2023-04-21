@@ -83,32 +83,47 @@ def construct_printer_queues():
         status_thread.start()
 
 
-def process_printer_status(printer_name, queue):
+def process_printer_status(printer_name, queue, second_interval=5):
+    """
+    This function is called in a 'status thread' and publishes a printer status 
+    every 5 seconds to the mqtt broker. This function can be considered a 
+    runnable for a printer and contains its own Cups instance for retrieving 
+    the status of a printer and its own publisher.
+    """
+
+    conn = cups.Connection()
+    publisher = PrinterStatusPublisher(client)
+
     while True:
-        conn = cups.Connection()
-        state = conn.getPrinterAttributes(printer_name)['printer-state']
-        publisher = PrinterStatusPublisher(client)
-        publisher.publish(printer_name=printer_name, status=state)
-        time.sleep(1)
+        publisher.publish(
+            printer_name=printer_name,
+            status=conn.getPrinterAttributes(printer_name)['printer-state']
+        )
+        time.sleep(second_interval)
 
 
 def process_printer_messages(printer_name, queue):
+    """
+    This function is called in the 'queue thread' and handles, parses and dispatches 
+    incoming payload for printing to cups. 
+    """
+
+    handler = PrintHandler(processors)
+    error_publisher = ErrorPublisher(client)
+
     while True:
         print_payload: PrintPayload = queue.get()
         try:
-            handler = PrintHandler(processors)
             base_pdf = generator.generate(payload=print_payload)
             merged_pdf = merger.merge(
                 pdf=base_pdf, pages=print_payload.pages, exclude=print_payload.exclude)
             handler.print(print_payload=print_payload, pdf=merged_pdf)
         except BaseException as exception:
-            print("Something went wrong (%s)" % (type(exception).__name__))
-            ErrorPublisher(client).publish(
-                topic_id=print_payload.identifier, exception=type(exception).__name__)
+            error_publisher.publish(
+                print_payload.identifier, type(exception).__name__)
 
 
 def on_received_message_print_topic(client, userdata, msg):
-
     try:
         # 1.  Processing payload that was received:
         print_payload: PrintPayload = payload_parser.parse_payload(msg.payload)
@@ -119,7 +134,6 @@ def on_received_message_print_topic(client, userdata, msg):
         printer_queues[print_payload.printer].put(print_payload)
 
     except BaseException as exception:
-        print("Something went wrong (%s)" % (type(exception).__name__))
         ErrorPublisher(client).publish(
             topic_id=topic_id, exception=type(exception).__name__)
 
