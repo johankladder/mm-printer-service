@@ -3,7 +3,7 @@
 
     <div class="m-8">
       <div class="flex">
-        <div class="grow font-bold">
+        <div class="grow font-bold text-xl">
           <div v-if="mqttConnected" class="bg-green-200 p-4 rounded-xl shadow-lg">
             <i>Ready for jobs</i>
           </div>
@@ -15,11 +15,11 @@
       </div>
 
       <!-- Options section -->
-      <div class="mt-8">
+      <div class="mt-8" v-if="printers.length > 1">
         <div class="flex mb-2 text-4xl">
           <b><i>Options</i></b>
         </div>
-        <div class="grid grid-cols-3 xl:grid-cols-8 gap-4">
+        <div class="grid grid-flow-col gap-4 text-xl">
           <button v-on:click="onRestartServer()"
             class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-8 px-8 rounded-xl shadow-lg">
             Restart server
@@ -39,7 +39,7 @@
       </div>
 
       <!-- Printer section -->
-      <div class="mt-8">
+      <div class="mt-8" v-if="printers.length > 1">
         <div class="flex mb-2 text-4xl">
           <b><i>Printers</i></b>
         </div>
@@ -50,7 +50,7 @@
               <b>{{ printer.queue_name }}</b>
             </div>
 
-            <div class="flex items-center justify-center text-xl ">
+            <div class="flex items-center justify-center text-xl">
               <div v-if="printerStatuses[printer.queue_name] == 4"
                 class="flex items-center justify-center grow text-white ">
                 <svg aria-hidden="true" class="w-8 h-8 mr-2 text-white-200 animate-spin dark:text-gray-600 fill-blue-600"
@@ -74,13 +74,13 @@
             <div class="flex justify-between items-end">
               <div>
                 <button v-on:click="onTestPage(printer)"
-                  class="items-end bg-blue-500 hover:bg-blue-700 text-white font-bold py-4 px-4 rounded-xl grow">
+                  class="items-end bg-slate-500 hover:bg-blue-700 text-white font-bold py-4 px-4 rounded-xl grow">
                   Test page
                 </button>
               </div>
               <div>
                 <button v-on:click="onClearAllJobs(printer)"
-                  class="items-end bg-blue-500 hover:bg-blue-700 text-white font-bold py-4 px-4 rounded-xl grow">
+                  class="items-end bg-slate-500 hover:bg-blue-700 text-white font-bold py-4 px-4 rounded-xl grow">
                   Clear jobs
                 </button>
               </div>
@@ -90,27 +90,32 @@
       </div>
 
 
-
       <!-- Console section -->
-      <div class="mt-8">
-        <div class="flex items-end justify-between mb-2">
-          <b class="text-4xl"><i>Console</i></b>
-          <button v-on:click="onPauseConsole()"
-            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-4 px-4 rounded-xl shadow-lg">
-            <span v-if="!consolePause">Pause console</span>
-            <span v-else>Continue console</span>
-          </button>
-        </div>
-        <div class="console-container bg-slate-800 overflow-auto p-4 text-white rounded-lg text-xs shadow-lg">
-          <div>
-            <div class="flex" :key="subscription" v-for="subscription in consoleSubscriptions">
-              {{ subscription.time }} {{ subscription.topic }} {{ subscription.payload }}
-            </div>
-            <div v-if="consoleSubscriptions.length == 0">
-              <i>Nothing to show..</i>
+      <div class="mt-8" v-if="printers.length > 1">
+        <div v-if="showConsole">
+          <div class="flex items-end justify-between mb-4">
+            <b class="text-4xl"><i>Console</i></b>
+            <button v-on:click="onPauseConsole()"
+              class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-4 px-4 rounded-xl text-xl shadow-lg">
+              <span v-if="!consolePause">Pause console</span>
+              <span v-else>Continue console</span>
+            </button>
+          </div>
+          <div class="console-container bg-slate-800 overflow-auto p-4 text-white rounded-lg text-xs shadow-lg">
+            <div>
+              <div class="flex" :key="subscription" v-for="subscription in consoleSubscriptions">
+                {{ subscription.time }} {{ subscription.topic }} {{ subscription.payload }}
+              </div>
+              <div v-if="consoleSubscriptions.length == 0">
+                <i>Nothing to show..</i>
+              </div>
             </div>
           </div>
         </div>
+        <button v-on:click="onToggleConsole()"
+          class="flex bg-blue-500 hover:bg-blue-700 text-white font-bold py-4 px-4 rounded-xl text-xl shadow-lg">
+          Show console
+        </button>
       </div>
     </div>
   </div>
@@ -137,7 +142,8 @@ export default {
       subscriptions: {},
       consoleSubscriptions: [],
       consolePause: false,
-      printerStatuses: {}
+      printerStatuses: {},
+      showConsole: false
     }
   },
 
@@ -239,6 +245,10 @@ export default {
 
     onPauseConsole() {
       this.consolePause = !this.consolePause
+    },
+
+    onToggleConsole() {
+      this.showConsole = !this.showConsole
     }
 
   }
@@ -258,4 +268,5 @@ export default {
   height: 200px;
   white-space: nowrap;
 
-}</style>
+}
+</style>
