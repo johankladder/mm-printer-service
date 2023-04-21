@@ -20,7 +20,7 @@ from bin.printing.processors.cups_processor import CupsProcessor
 from service.mqtt.publishers.error_publisher import ErrorPublisher
 from service.mqtt.publishers.printer_status_publisher import PrinterStatusPublisher
 
-from bin.util.cups import get_all_cups_printers
+from bin.util.cups import get_all_cups_printers, CupsConnection
 
 import paho.mqtt.client as mqtt
 from dotenv import load_dotenv
@@ -91,15 +91,17 @@ def process_printer_status(printer_name, queue, second_interval=5):
     the status of a printer and its own publisher.
     """
 
-    conn = cups.Connection()
-    publisher = PrinterStatusPublisher(client)
+    with CupsConnection() as conn:
 
-    while True:
-        publisher.publish(
-            printer_name=printer_name,
-            status=conn.getPrinterAttributes(printer_name)['printer-state']
-        )
-        time.sleep(second_interval)
+        publisher = PrinterStatusPublisher(client)
+
+        while True:
+            publisher.publish(
+                printer_name=printer_name,
+                status=conn.getPrinterAttributes(printer_name)['printer-state']
+            )
+
+            time.sleep(second_interval)
 
 
 def process_printer_messages(printer_name, queue):

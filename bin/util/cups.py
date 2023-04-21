@@ -1,4 +1,5 @@
 import subprocess
+import cups
 
 def get_all_cups_printers():
     lpstat_output = subprocess.check_output(['lpstat', '-a'], text=True)
@@ -11,3 +12,12 @@ def get_all_cups_printers():
         printer_name = line.split()[0]
         printers.append(printer_name)
     return printers
+
+
+class CupsConnection:
+    def __enter__(self):
+        self.conn = cups.Connection()
+        return self.conn
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.conn = None
