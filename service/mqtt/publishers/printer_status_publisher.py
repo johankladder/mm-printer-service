@@ -5,17 +5,14 @@ from paho.mqtt.client import Client
 
 class PrinterStatusPublisher():
 
-    def __init__(self, client: Client) -> None:
+    def __init__(self, client: Client, printer_name: str) -> None:
         self.client = client
+        self.printer_name = printer_name
+        self.status_topic = os.getenv(
+            "PRINTER_STATUS_TOPIC", 'mm/printing/printer/status/+').replace('+', printer_name)
 
-    def get_topic(self, printer_name):
-        status_topic = os.getenv(
-            "PRINTER_STATUS_TOPIC", 'mm/printing/printer/status/+')
-        return status_topic.replace('+', printer_name)
-
-    def publish(self, printer_name: str, status: int):
-        topic = self.get_topic(printer_name=printer_name)
+    def publish(self, status: int):
         payload = {
             "status": status
         }
-        self.client.publish(topic, payload=json.dumps(payload))
+        self.client.publish(self.status_topic, payload=json.dumps(payload))

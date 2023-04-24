@@ -91,16 +91,12 @@ def process_printer_status(printer_name, queue, second_interval=5):
     the status of a printer and its own publisher.
     """
 
+    publisher = PrinterStatusPublisher(client, printer_name)
+
     with CupsConnection() as conn:
 
-        publisher = PrinterStatusPublisher(client)
-
         while True:
-            publisher.publish(
-                printer_name=printer_name,
-                status=conn.getPrinterAttributes(printer_name)['printer-state']
-            )
-
+            publisher.publish(status=conn.getPrinterAttributes(printer_name)['printer-state'])
             time.sleep(second_interval)
 
 
@@ -147,9 +143,9 @@ if __name__ == "__main__":
     client = get_connected_client()
     client.loop_start()
 
+    status_topic = os.getenv("SERVICE_STATUS_TOPIC", 'mm/mqtt/printing/status')
+
     # Keep open:
     while True:
-        status_topic = os.getenv(
-            "SERVICE_STATUS_TOPIC", 'mm/mqtt/printing/status')
         client.publish(status_topic, "")
         time.sleep(5)
