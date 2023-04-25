@@ -145,7 +145,7 @@ if __name__ == "__main__":
 
     status_topic = os.getenv("SERVICE_STATUS_TOPIC", 'mm/mqtt/printing/status')
 
-    # Keep open:
+    # Keep open and publish status every 60 seconds:
     while True:
         client.publish(status_topic, "")
-        time.sleep(5)
+        time.sleep(60)

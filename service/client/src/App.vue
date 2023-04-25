@@ -3,11 +3,15 @@
 
     <div class="m-8">
       <div class="flex">
-        <div class="grow font-bold text-xl">
+        <div class="grow">
           <div v-if="mqttConnected" class="bg-green-200 p-4 rounded-xl shadow-lg">
-            <i>Ready for jobs</i>
+            <div class="font-bold text-xl">
+              <i>Ready for jobs</i>
+            </div>
+
+            <i>Latest ping: {{ lastConnectionPublish }} </i>
           </div>
-          <div v-else class="bg-red-500 p-4 rounded-lg text-white shadow-lg">
+          <div v-else class="bg-red-500 p-4 rounded-lg text-white shadow-lg font-bold text-xl">
             Not online!
           </div>
         </div>
