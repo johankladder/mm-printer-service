@@ -29,14 +29,12 @@ class PDFGenerator():
         return fp
 
     def __generate_url(self, url: str):
-        if os.path.splitext(url)[1] == ".pdf":
-            response = requests.get(url)
-            if response.status_code > 200:
-                raise InvalidUrlException()
-            else:
-                fp = tempfile.NamedTemporaryFile(suffix='.pdf', delete=False)
-                fp.write(response.content)
-                return fp
+        response = requests.get(url)
+        content_type = response.headers.get("Content-Type")
+        if (response.status_code >= 200 and ('application/pdf' in content_type)):
+            fp = tempfile.NamedTemporaryFile(suffix='.pdf', delete=False)
+            fp.write(response.content)
+            return fp
         else:
             raise InvalidUrlException()
 

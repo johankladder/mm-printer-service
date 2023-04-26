@@ -54,6 +54,12 @@ def test_generating_with_valid_url(generator: PDFGenerator, payload: PrintPayloa
     )
     assert len(reader.pages) == 1
 
+def test_generating_with_valid_url_with_options(generator: PDFGenerator, payload: PrintPayload):
+    payload.url = "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf?any"
+    reader = generator.generate(
+        payload=payload
+    )
+    assert len(reader.pages) == 1
 
 def test_generating_with_valid_base64(generator: PDFGenerator, payload: PrintPayload):
     path = os.path.join(os.path.dirname(__file__),
