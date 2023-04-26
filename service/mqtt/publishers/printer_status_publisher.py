@@ -15,4 +15,4 @@ class PrinterStatusPublisher():
         payload = {
             "status": status
         }
-        self.client.publish(self.status_topic, payload=json.dumps(payload))
+        self.client.publish(self.status_topic, payload=json.dumps(payload), qos=0, retain=False)

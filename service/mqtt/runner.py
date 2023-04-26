@@ -5,7 +5,6 @@ import os
 import threading
 import time
 import queue
-import cups
 
 from bin.processing.generator import PDFGenerator
 from bin.processing.merger import PDFMerger
@@ -49,6 +48,7 @@ def get_connected_client():
 
 
 def on_connect(client, userdata, flags, rc):
+    print("Connected....")
     construct_processors(client=client)
     construct_printer_queues()
     print_topic: str = os.getenv("PRINT_TOPIC", 'mm/printing/print/+')
@@ -147,5 +147,5 @@ if __name__ == "__main__":
 
     # Keep open and publish status every 60 seconds:
     while True:
-        client.publish(status_topic, "")
+        client.publish(status_topic, payload="", qos=0, retain=False)
         time.sleep(60)
