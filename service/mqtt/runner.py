@@ -48,7 +48,6 @@ def get_connected_client():
 
 
 def on_connect(client, userdata, flags, rc):
-    print("Connected....")
     construct_processors(client=client)
     construct_printer_queues()
     print_topic: str = os.getenv("PRINT_TOPIC", 'mm/printing/print/+')
@@ -77,13 +76,15 @@ def construct_printer_queues():
     for printer_name, printer_queue in printer_queues.items():
         queue_thread = threading.Thread(target=process_printer_messages,
                                         args=(printer_name, printer_queue))
-        status_thread = threading.Thread(target=process_printer_status,
-                                         args=(printer_name, printer_queue))
         queue_thread.start()
-        status_thread.start()
 
 
-def process_printer_status(printer_name, queue, second_interval=5):
+    status_thread = threading.Thread(target=process_printer_status,
+                                         args=(printer_queues, printer_queue))
+    status_thread.start()
+
+
+def process_printer_status(printers, queue, second_interval=5):
     """
     This function is called in a 'status thread' and publishes a printer status 
     every 5 seconds to the mqtt broker. This function can be considered a 
@@ -91,12 +92,12 @@ def process_printer_status(printer_name, queue, second_interval=5):
     the status of a printer and its own publisher.
     """
 
-    publisher = PrinterStatusPublisher(printer_name)
-
     with CupsConnection() as conn:
-
         while True:
-            publisher.publish(client=client, status=conn.getPrinterAttributes(printer_name)['printer-state'])
+            for printer_name in printers:
+                publisher = PrinterStatusPublisher(printer_name)
+                publisher.publish(client=client, status=conn.getPrinterAttributes(printer_name)['printer-state'])
+        
             time.sleep(second_interval)
 
 
