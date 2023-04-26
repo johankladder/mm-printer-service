@@ -91,12 +91,12 @@ def process_printer_status(printer_name, queue, second_interval=5):
     the status of a printer and its own publisher.
     """
 
-    publisher = PrinterStatusPublisher(client, printer_name)
+    publisher = PrinterStatusPublisher(printer_name)
 
     with CupsConnection() as conn:
 
         while True:
-            publisher.publish(status=conn.getPrinterAttributes(printer_name)['printer-state'])
+            publisher.publish(client=client, status=conn.getPrinterAttributes(printer_name)['printer-state'])
             time.sleep(second_interval)
 
 
