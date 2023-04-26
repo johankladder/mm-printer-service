@@ -1,6 +1,5 @@
 
 # Run file with: python -m service.mqtt.runner
-
 import os
 import threading
 import time
@@ -17,7 +16,7 @@ from bin.printing.processors.debug_processor import DebugProcessor
 from bin.printing.processors.cups_processor import CupsProcessor
 
 from service.mqtt.publishers.error_publisher import ErrorPublisher
-from service.mqtt.publishers.printer_status_publisher import PrinterStatusPublisher
+from service.mqtt.publishers.printer_status_publisher import PrinterStatusPublisher, StatusPublisherContext
 
 from bin.util.cups import get_all_cups_printers, CupsConnection
 
@@ -78,13 +77,12 @@ def construct_printer_queues():
                                         args=(printer_name, printer_queue))
         queue_thread.start()
 
-
     status_thread = threading.Thread(target=process_printer_status,
-                                         args=(printer_queues, printer_queue))
+                                     args=(printer_queues, 5))
     status_thread.start()
 
 
-def process_printer_status(printers, queue, second_interval=5):
+def process_printer_status(printers, second_interval):
     """
     This function is called in a 'status thread' and publishes a printer status 
     every 5 seconds to the mqtt broker. This function can be considered a 
@@ -92,13 +90,20 @@ def process_printer_status(printers, queue, second_interval=5):
     the status of a printer and its own publisher.
     """
 
-    with CupsConnection() as conn:
-        while True:
-            for printer_name in printers:
-                publisher = PrinterStatusPublisher(printer_name)
-                publisher.publish(client=client, status=conn.getPrinterAttributes(printer_name)['printer-state'])
-        
-            time.sleep(second_interval)
+    status_topic = os.getenv("PRINTER_STATUS_TOPIC",
+                             'mm/printing/printer/status/+')
+
+    with StatusPublisherContext() as publisher:
+        with CupsConnection() as conn:
+            while True:
+                for printer_name in printers:
+                    publisher.publish(
+                        client=client,
+                        topic=status_topic.replace('+', printer_name),
+                        status=conn.getPrinterAttributes(
+                            printer_name)['printer-state']
+                    )
+                time.sleep(second_interval)
 
 
 def process_printer_messages(printer_name, queue):
