@@ -47,7 +47,7 @@
         <div class="flex mb-2 text-4xl">
           <b><i>Printers</i></b>
         </div>
-        <div class=" grid grid-cols-3 xl:grid-cols-8 gap-4">
+        <div class=" grid grid-cols-3 xl:grid-cols-6 gap-4">
           <div :key="printer" v-for="printer in printers"
             class="shadow-lg flex grid aspect-square bg-slate-800 rounded-lg p-4">
             <div class="flex overflow-hidden truncate text-xl text-white">
