@@ -19,7 +19,7 @@
       </div>
 
       <!-- Options section -->
-      <div class="mt-8" v-if="printers.length > 1">
+      <div class="mt-8" v-if="printers.length > 0">
         <div class="flex mb-2 text-4xl">
           <b><i>Options</i></b>
         </div>
@@ -43,7 +43,7 @@
       </div>
 
       <!-- Printer section -->
-      <div class="mt-8" v-if="printers.length > 1">
+      <div class="mt-8" v-if="printers.length > 0">
         <div class="flex mb-2 text-4xl">
           <b><i>Printers</i></b>
         </div>
