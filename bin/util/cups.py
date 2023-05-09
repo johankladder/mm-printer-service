@@ -12,8 +12,9 @@ def get_all_cups_printers():
     printers = []
     for line in lpstat_lines:
         printer_name = line.split()[0]
-        # if 'printer' in printer_name:
-        printers.append(printer_name)
+        if 'printer' in printer_name:
+            printers.append(printer_name)
+            
     return printers
 
 
