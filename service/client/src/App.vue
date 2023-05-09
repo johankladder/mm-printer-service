@@ -72,7 +72,7 @@
               </div>
               <div v-else-if="printerStatuses[printer.queue_name] == undefined"
                 class="bg-yellow-400 p-4 rounded-xl font-bold">Laden...</div>
-              <div v-else class="bg-red-500 p-4 rounded-xl font-bold text-white">Error</div>
+              <div v-else class="bg-red-500 p-4 rounded-xl font-bold text-white">Error ({{ printerStatuses[printer.queue_name] }})</div>
             </div>
 
             <div class="flex justify-between items-end">

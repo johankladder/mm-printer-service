@@ -14,7 +14,7 @@ def get_all_cups_printers():
         printer_name = line.split()[0]
         if 'printer' in printer_name:
             printers.append(printer_name)
-            
+
     return printers
 
 
@@ -31,7 +31,8 @@ def get_printer_state(printer_name):
         ['lpstat', '-p', printer_name]).decode().strip()
 
     # Use a regular expression to extract the printer status
-    match = re.search(r'is\s+(\w+)', lpstat_output)
+    match = re.search(r'(?:is|now)\s+(\w+)', lpstat_output)
+
     if match:
         printer_status = match.group(1)
     else:
@@ -40,10 +41,9 @@ def get_printer_state(printer_name):
     # Map the printer status to the corresponding integer value
     if printer_status in printer_states:
         status_code = printer_states[printer_status]
-    else:
-        status_code = -1
 
-    return status_code
+    # Only return -1 status when status was not in mapping
+    return -1 if printer_status is None else status_code
 
 
 class CupsConnection:
