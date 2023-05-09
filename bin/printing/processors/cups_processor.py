@@ -2,13 +2,8 @@ from bin.printing.handler import PrintProcessor
 from bin.models.print_payload import PrintPayload
 
 from service.mqtt.publishers.status_publisher import StatusPublisher
-
-from bin.util.cups import CupsConnection
-
-import cups
+from bin.util.cups import CupsConnection, get_printer_state
 import time
-import os
-
 
 class CupsProcessor(PrintProcessor):
 
@@ -22,7 +17,7 @@ class CupsProcessor(PrintProcessor):
                 print_payload.printer).get("media-default", "na_letter")
             self.options["media"] = default_media_size
 
-            job_id = conn.printFile(
+            conn.printFile(
                 print_payload.printer,
                 path,
                 'Print job',
@@ -34,19 +29,17 @@ class CupsProcessor(PrintProcessor):
             status = None
 
             while not completed and not stopped:
-                job = conn.getJobAttributes(job_id)
-                job_state = job.get('job-state', None)
 
-                if job_state == 3:
-                    status = "HELD"
-                elif job_state == 5:
+                state = get_printer_state(print_payload.printer)
+
+                if state == 4:
                     status = "PROCESSING"
-                elif job_state == 7:
-                    status = "STOPPED"
-                    stopped = True
-                elif job_state == 9:
+                elif state == 3:
                     status = "COMPLETED"
                     completed = True
+                elif state == 5:
+                    status = "STOPPED"
+                    stopped = True
                 else:
                     status = "UNKNOWN"
 

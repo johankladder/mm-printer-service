@@ -5,15 +5,15 @@ import re
 
 def get_all_cups_printers():
     lpstat_output = subprocess.check_output(['lpstat', '-a'], text=True)
+    filtered_output = subprocess.check_output(['grep', 'printer'], input=lpstat_output, text=True)
 
     # Split the output by lines
-    lpstat_lines = lpstat_output.splitlines()
+    lpstat_lines = filtered_output.splitlines()
 
     printers = []
     for line in lpstat_lines:
         printer_name = line.split()[0]
-        if 'printer' in printer_name:
-            printers.append(printer_name)
+        printers.append(printer_name)
 
     return printers
 
@@ -44,7 +44,6 @@ def get_printer_state(printer_name):
 
     # Only return -1 status when status was not in mapping
     return -1 if printer_status is None else status_code
-
 
 class CupsConnection:
     def __enter__(self):
