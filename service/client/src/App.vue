@@ -1,62 +1,31 @@
 <template>
   <div id="app">
 
-    <div class="m-8">
+    <div class="m-8 ">
       <div class="flex">
-        <div class="grow">
+        <div class="grow" v-on:click="onToggleConsole()">
           <div v-if="mqttConnected" class="bg-green-200 p-4 rounded-xl shadow-lg">
             <div class="font-bold text-xl">
-              <i>Ready for jobs</i>
+              <i>Printserver online!</i>
             </div>
-
-            <i>Latest ping: {{ lastConnectionPublish }} </i>
+            <i>{{ beatifyDate(lastConnectionPublish) }} </i>
           </div>
           <div v-else class="bg-red-500 p-4 rounded-lg text-white shadow-lg font-bold text-xl">
-            Not online!
+            Niet online - wacht voor verbinding. Printers werken mogelijk nog niet
           </div>
         </div>
-
-      </div>
-
-      <!-- Options section -->
-      <div class="mt-8" v-if="printers.length > 0">
-        <div class="flex mb-2 text-4xl">
-          <b><i>Options</i></b>
-        </div>
-        <div class="grid grid-flow-col gap-4 text-xl">
-          <button v-on:click="onRestartServer()"
-            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-8 px-8 rounded-xl shadow-lg">
-            Restart server
-          </button>
-
-          <button v-on:click="onClearAllJobs()"
-            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-8 px-8 rounded-xl shadow-lg">
-            Clear all jobs
-          </button>
-
-          <button v-on:click="onSyncPrinters()"
-            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-8 px-8 rounded-xl shadow-lg">
-            Sync printers
-          </button>
-        </div>
-
       </div>
 
       <!-- Printer section -->
       <div class="mt-8" v-if="printers.length > 0">
-        <div class="flex mb-2 text-4xl">
-          <b><i>Printers</i></b>
-        </div>
         <div class=" grid grid-cols-3 xl:grid-cols-6 gap-4">
           <div :key="printer" v-for="printer in printers"
             class="shadow-lg flex grid aspect-square bg-slate-800 rounded-lg p-4">
-            <div class="flex overflow-hidden truncate text-xl text-white">
-              <b>{{ printer.queue_name }}</b>
+            <div class="flex overflow-hidden truncate text-3xl text-white">
+              <b>{{ beautifyPrinterName(printer) }}</b>
             </div>
-
             <div class="flex items-center justify-center text-xl">
-              <div v-if="printerStatuses[printer.queue_name] == 4"
-                class="flex items-center justify-center grow text-white ">
+              <div v-if="retrievePrinterStatus(printer) == 4" class="flex items-center justify-center grow text-white ">
                 <svg aria-hidden="true" class="w-8 h-8 mr-2 text-white-200 animate-spin dark:text-gray-600 fill-blue-600"
                   viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path
@@ -67,12 +36,17 @@
                     fill="currentFill" />
                 </svg>
               </div>
-              <div v-else-if="printerStatuses[printer.queue_name] == 3" class="bg-green-200 p-4 rounded-xl font-bold">
-                <i>Ready</i>
+              <div v-else-if="retrievePrinterStatus(printer) == 3" class="bg-green-200 p-4 rounded-xl ">
+                <div class="font-bold">
+                  <i>Online</i>
+                </div>
+                <i class="text-sm">{{ retrieveLatestPrinterStatusTime(printer) }}</i>
               </div>
-              <div v-else-if="printerStatuses[printer.queue_name] == undefined"
-                class="bg-yellow-400 p-4 rounded-xl font-bold">Laden...</div>
-              <div v-else class="bg-red-500 p-4 rounded-xl font-bold text-white">Error ({{ printerStatuses[printer.queue_name] }})</div>
+              <div v-else-if="retrievePrinterStatus(printer) == undefined" class="bg-yellow-400 p-4 rounded-xl font-bold">
+                Printer status ophalen...
+              </div>
+              <div v-else class="bg-red-500 p-4 rounded-xl font-bold text-white">Error ({{
+                retrievePrinterStatus(printer) }})</div>
             </div>
 
             <div class="flex justify-between items-end">
@@ -95,17 +69,9 @@
 
 
       <!-- Console section -->
-      <div class="mt-8" v-if="printers.length > 1">
-        <div v-if="showConsole">
-          <div class="flex items-end justify-between mb-4">
-            <b class="text-4xl"><i>Console</i></b>
-            <button v-on:click="onPauseConsole()"
-              class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-4 px-4 rounded-xl text-xl shadow-lg">
-              <span v-if="!consolePause">Pause console</span>
-              <span v-else>Continue console</span>
-            </button>
-          </div>
-          <div class="console-container bg-slate-800 overflow-auto p-4 text-white rounded-lg text-xs shadow-lg">
+      <div class="mt-8" v-if="printers.length > 0">
+        <div v-if="showConsole" class="mb-4">
+          <div class="console-container bg-slate-800 overflow-auto p-4 text-white rounded-lg shadow-lg">
             <div>
               <div class="flex" :key="subscription" v-for="subscription in consoleSubscriptions">
                 {{ subscription.time }} {{ subscription.topic }} {{ subscription.payload }}
@@ -116,10 +82,21 @@
             </div>
           </div>
         </div>
-        <button v-on:click="onToggleConsole()"
-          class="flex bg-blue-500 hover:bg-blue-700 text-white font-bold py-4 px-4 rounded-xl text-xl shadow-lg">
-          Show console
-        </button>
+        <div class="space-x-4" v-if="showConsole">
+          <button v-on:click="onToggleConsole()"
+            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-4 px-4 rounded-xl text-xl shadow-lg">
+            Show console
+          </button>
+          <button v-on:click="onRestartServer()"
+            class=" bg-blue-500 hover:bg-blue-700 text-white font-bold py-4 px-4 rounded-xl text-xl shadow-lg">
+            Restart server
+          </button>
+
+          <button v-on:click="onClearAllJobs()"
+            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-4 px-4 rounded-xl text-xl shadow-lg">
+            Clear all jobs
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -133,9 +110,6 @@ import axios from 'axios'
 
 export default {
   name: 'App',
-  components: {
-
-  },
 
   data() {
     return {
@@ -145,7 +119,6 @@ export default {
       printers: [],
       subscriptions: {},
       consoleSubscriptions: [],
-      consolePause: false,
       printerStatuses: {},
       showConsole: false
     }
@@ -173,7 +146,9 @@ export default {
         this.handlePrinterStatusSubscription(topic, payload)
       }
     })
+
     this.startConnectionTimer()
+    this.onSyncPrinters();
 
   },
 
@@ -199,21 +174,50 @@ export default {
     handlePrinterStatusSubscription(topic, payload) {
       let data = JSON.parse(new TextDecoder().decode(payload));
       let printerName = topic.split('/')[4]
-      this.printerStatuses[printerName] = data.status
+      this.printerStatuses[printerName] = {
+        status: data.status,
+        latestPing: new Date()
+      }
     },
+
+    retrievePrinterStatus({ queue_name }) {
+      if (!this.printerStatuses[queue_name]) {
+        return undefined
+      }
+      return this.printerStatuses[queue_name].status
+    },
+
+    retrieveLatestPrinterStatusTime({ queue_name }) {
+      if (!this.printerStatuses[queue_name]) {
+        return undefined
+      }
+      return this.beatifyDate(this.printerStatuses[queue_name].latestPing);
+    },
+
+    beatifyDate(date) {
+      return date.toLocaleDateString('nl', { hour: "numeric", minute: "numeric", second: "numeric" })
+    },
+
+    beautifyPrinterName({ queue_name }) {
+      const arr = queue_name.replaceAll('_', ' ').split(" ");
+      for (var i = 0; i < arr.length; i++) {
+        arr[i] = arr[i].charAt(0).toUpperCase() + arr[i].slice(1);
+
+      }
+      return arr.join(" ");
+    },
+
 
     handlePrintStatusSubscription(topic, payload) {
       this.subscriptions[topic] = JSON.parse(new TextDecoder().decode(payload));
-      if (!this.consolePause) {
-        let now = new Date(Date.now())
-        this.consoleSubscriptions.unshift({
-          "time": now.toUTCString(),
-          "topic": topic,
-          "payload": JSON.parse(new TextDecoder().decode(payload))
-        })
-        if (this.consoleSubscriptions.length > 100) {
-          this.consoleSubscriptions.pop()
-        }
+      let now = new Date(Date.now())
+      this.consoleSubscriptions.unshift({
+        "time": now.toUTCString(),
+        "topic": topic,
+        "payload": JSON.parse(new TextDecoder().decode(payload))
+      })
+      if (this.consoleSubscriptions.length > 100) {
+        this.consoleSubscriptions.pop()
       }
     },
 
@@ -245,10 +249,6 @@ export default {
     onSyncPrinters() {
       axios.get(process.env.VUE_APP_FLASK_HOST + "/cups/printers")
         .then(({ data }) => this.printers = data)
-    },
-
-    onPauseConsole() {
-      this.consolePause = !this.consolePause
     },
 
     onToggleConsole() {
