@@ -21,8 +21,11 @@
         <div class=" grid grid-cols-3 xl:grid-cols-6 gap-4">
           <div :key="printer" v-for="printer in printers"
             class="shadow-lg flex grid aspect-square bg-slate-800 rounded-lg p-4">
-            <div class="flex overflow-hidden truncate text-3xl text-white">
-              <b>{{ beautifyPrinterName(printer) }}</b>
+            <div class="flex overflow-hidden truncate text-3xl  text-white">
+              <div class="font-bold">
+                <b>{{ beautifyPrinterName(printer) }}</b>
+              </div>
+    
             </div>
             <div class="flex items-center justify-center text-xl">
               <div v-if="retrievePrinterStatus(printer) == 4" class="flex items-center justify-center grow text-white ">
@@ -42,16 +45,16 @@
                 </div>
                 <i class="text-sm">{{ retrieveLatestPrinterStatusTime(printer) }}</i>
               </div>
-              <div v-else-if="retrievePrinterStatus(printer) == undefined" class="bg-yellow-400 p-4 rounded-xl font-bold">
+              <div v-else-if="retrievePrinterStatus(printer) == undefined" class="bg-yellow-400 p-4 rounded-xl font-bold  animate-pulse">
                 Printer status ophalen...
               </div>
-              <div v-else class="bg-red-500 p-4 rounded-xl font-bold text-white">Error ({{
+              <div v-else class="bg-red-500 p-4 rounded-xl font-bold text-white animate-pulse">Error ({{
                 retrievePrinterStatus(printer) }})</div>
             </div>
 
             <div class="flex justify-between items-end">
               <div>
-                <button v-on:click="onTestPage(printer)"
+                <button v-on:click="onTestPage(printer)" v-if="retrievePrinterStatus(printer) == 3"
                   class="items-end bg-slate-500 hover:bg-blue-700 text-white font-bold py-4 px-4 rounded-xl grow">
                   Test page
                 </button>
