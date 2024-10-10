@@ -31,6 +31,7 @@ processors = []
 printer_queues = {}
 
 threads = []
+running = True
 
 def get_connected_client():
     location = os.getenv("MQTT_HOST", 'localhost')
@@ -98,7 +99,7 @@ def process_printer_status(printers, second_interval):
                              'mm/printing/printer/status/+')
 
     with StatusPublisherContext() as publisher:
-        while True:
+        while running:
             for printer_name in printers:
                 publisher.publish(
                     client=client,
@@ -117,7 +118,7 @@ def process_printer_messages(printer_name, queue):
     handler = PrintHandler(processors)
     error_publisher = ErrorPublisher(client)
 
-    while True:
+    while running:
         print_payload: PrintPayload = queue.get()
         try:
             base_pdf = generator.generate(payload=print_payload)
@@ -161,6 +162,7 @@ if __name__ == "__main__":
 
     except KeyboardInterrupt:
         print("Exiting...")
+        running = False
     finally:
         print("Stopping threads...")
         for thread in threads:
