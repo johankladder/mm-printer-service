@@ -119,7 +119,11 @@ def process_printer_messages(printer_name, queue):
     error_publisher = ErrorPublisher(client)
 
     while running:
-        print_payload: PrintPayload = queue.get()
+        try:
+            print_payload: PrintPayload = queue.get(timeout=1)
+        except queue.Empty:
+            continue
+
         try:
             base_pdf = generator.generate(payload=print_payload)
             merged_pdf = merger.merge(
@@ -155,6 +159,7 @@ if __name__ == "__main__":
 
     status_topic = os.getenv("SERVICE_STATUS_TOPIC", 'mm/mqtt/printing/status')
 
+    print("Connecting done...")
     try:
         while True:
             client.publish(status_topic, payload="", qos=0, retain=False)
