@@ -120,6 +120,7 @@ def process_printer_messages(printer_name, queue):
             merged_pdf = merger.merge(
                 pdf=base_pdf, pages=print_payload.pages, exclude=print_payload.exclude)
             handler.print(print_payload=print_payload, pdf=merged_pdf)
+            print("printing: ", print_payload.identifier, print_payload.url)
         except BaseException as exception:
             error_publisher.publish(
                 print_payload.identifier, type(exception).__name__)
