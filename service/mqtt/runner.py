@@ -117,8 +117,6 @@ def process_printer_messages(printer_name, queue):
     This function is called in the 'queue thread' and handles, parses and dispatches 
     incoming payload for printing to cups. 
     """
-
-    handler = PrintHandler(processors)
     error_publisher = ErrorPublisher(client)
 
     while running:
@@ -128,6 +126,7 @@ def process_printer_messages(printer_name, queue):
             continue
 
         try:
+            handler = PrintHandler(processors)
             base_pdf = generator.generate(payload=print_payload)
             merged_pdf = merger.merge(
                 pdf=base_pdf, pages=print_payload.pages, exclude=print_payload.exclude)
