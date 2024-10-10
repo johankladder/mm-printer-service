@@ -30,6 +30,7 @@ merger = PDFMerger()
 processors = []
 printer_queues = {}
 
+threads = []
 
 def get_connected_client():
     location = os.getenv("MQTT_HOST", 'localhost')
@@ -47,11 +48,12 @@ def get_connected_client():
 
 
 def on_connect(client, userdata, flags, rc):
-    construct_processors(client=client)
-    construct_printer_queues()
-    print_topic: str = os.getenv("PRINT_TOPIC", 'mm/printing/print/+')
-    client.subscribe(print_topic)
-    client.message_callback_add(print_topic, on_received_message_print_topic)
+    if rc == 0:
+        construct_processors(client=client)
+        construct_printer_queues()
+        print_topic: str = os.getenv("PRINT_TOPIC", 'mm/printing/print/+')
+        client.subscribe(print_topic)
+        client.message_callback_add(print_topic, on_received_message_print_topic)
 
 
 def construct_processors(client):
@@ -76,10 +78,12 @@ def construct_printer_queues():
         queue_thread = threading.Thread(target=process_printer_messages,
                                         args=(printer_name, printer_queue))
         queue_thread.start()
+        threads.append(queue_thread)
 
     status_thread = threading.Thread(target=process_printer_status,
                                      args=(printer_queues, 5))
     status_thread.start()
+    threads.append(status_thread)
 
 
 def process_printer_status(printers, second_interval):
@@ -150,7 +154,17 @@ if __name__ == "__main__":
 
     status_topic = os.getenv("SERVICE_STATUS_TOPIC", 'mm/mqtt/printing/status')
 
-    # Keep open and publish status every 60 seconds:
-    while True:
-        client.publish(status_topic, payload="", qos=0, retain=False)
-        time.sleep(60)
+    try:
+        while True:
+            client.publish(status_topic, payload="", qos=0, retain=False)
+            time.sleep(60)
+
+    except KeyboardInterrupt:
+        print("Exiting...")
+    finally:
+        for thread in threads:
+            thread.join()
+
+        client.loop_stop()
+        client.disconnect()
+
