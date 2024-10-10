@@ -162,9 +162,11 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         print("Exiting...")
     finally:
+        print("Stopping threads...")
         for thread in threads:
             thread.join()
 
+        print("Stopping client...")
         client.loop_stop()
         client.disconnect()
 
