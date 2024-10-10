@@ -121,7 +121,7 @@ def process_printer_messages(printer_name, queue):
     while running:
         try:
             print_payload: PrintPayload = queue.get(timeout=1)
-        except queue.empty:
+        except:
             continue
 
         try:
