@@ -32,7 +32,7 @@ class PrintHandler():
         path = pdf.stream.name
 
         for processor in self.processors:
-            print("TEST processing")
+            print("Print page with processor: ", processor)
             processor.print_page(
                 print_payload=print_payload,
                 path=path

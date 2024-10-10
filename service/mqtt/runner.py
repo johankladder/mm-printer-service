@@ -125,6 +125,7 @@ def process_printer_messages(printer_name, queue):
             continue
 
         try:
+            print("Receiving payload")
             base_pdf = generator.generate(payload=print_payload)
             merged_pdf = merger.merge(
                 pdf=base_pdf, pages=print_payload.pages, exclude=print_payload.exclude)
