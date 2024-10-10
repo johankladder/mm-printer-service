@@ -50,14 +50,14 @@ def get_connected_client():
 
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
-        construct_processors(client=client)
+        fill_processors(client=client)
         construct_printer_queues()
         print_topic: str = os.getenv("PRINT_TOPIC", 'mm/printing/print/+')
         client.subscribe(print_topic)
         client.message_callback_add(print_topic, on_received_message_print_topic)
 
 
-def construct_processors(client):
+def fill_processors(client):
     processor_map = {
         'debug': DebugProcessor(client),
         'cups': CupsProcessor(client)
@@ -66,7 +66,9 @@ def construct_processors(client):
     processors_from_env: list[str] = os.getenv(
         "PROCESSORS", 'debug').split(',')
 
-    processors = []
+    # Clear the list and fill it with the processors from the environment
+    processors.clear()
+
     for processor in processors_from_env:
         processors.append(processor_map[processor])
 
@@ -126,12 +128,10 @@ def process_printer_messages(printer_name, queue):
             continue
 
         try:
-            print("Receiving payload")
             base_pdf = generator.generate(payload=print_payload)
             merged_pdf = merger.merge(
                 pdf=base_pdf, pages=print_payload.pages, exclude=print_payload.exclude)
             handler.print(print_payload=print_payload, pdf=merged_pdf)
-            print("printing: ", print_payload.identifier, print_payload.url)
         except BaseException as exception:
             error_publisher.publish(
                 print_payload.identifier, type(exception).__name__)
