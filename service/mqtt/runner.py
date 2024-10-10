@@ -66,6 +66,7 @@ def construct_processors(client):
     processors_from_env: list[str] = os.getenv(
         "PROCESSORS", 'debug').split(',')
 
+    processors = []
     for processor in processors_from_env:
         processors.append(processor_map[processor])
 
