@@ -15,10 +15,7 @@ from bin.printing.handler import PrintHandler
 from bin.printing.processors.debug_processor import DebugProcessor
 from bin.printing.processors.cups_processor import CupsProcessor
 
-from service.mqtt.publishers.error_publisher import ErrorPublisher
-from service.mqtt.publishers.printer_status_publisher import StatusPublisherContext
-
-from bin.util.cups import get_all_cups_printers, get_printer_state
+from bin.util.cups import get_all_cups_printers
 
 import paho.mqtt.client as mqtt
 from dotenv import load_dotenv
@@ -84,40 +81,11 @@ def construct_printer_queues():
         queue_thread.start()
         threads.append(queue_thread)
 
-    status_thread = threading.Thread(target=process_printer_status,
-                                     args=(printer_queues, 5))
-    status_thread.start()
-    threads.append(status_thread)
-
-
-def process_printer_status(printers, second_interval):
-    """
-    This function is called in a 'status thread' and publishes a printer status 
-    every 5 seconds to the mqtt broker. This function can be considered a 
-    runnable for a printer and contains its own Cups instance for retrieving 
-    the status of a printer and its own publisher.
-    """
-
-    status_topic = os.getenv("PRINTER_STATUS_TOPIC",
-                             'mm/printing/printer/status/+')
-
-    with StatusPublisherContext() as publisher:
-        while running:
-            for printer_name in printers:
-                publisher.publish(
-                    client=client,
-                    topic=status_topic.replace('+', printer_name),
-                    status=get_printer_state(printer_name)
-                )
-            time.sleep(second_interval)
-
-
 def process_printer_messages(printer_name, queue):
     """
     This function is called in the 'queue thread' and handles, parses and dispatches 
     incoming payload for printing to cups. 
     """
-    error_publisher = ErrorPublisher(client)
 
     while running:
         try:
@@ -132,12 +100,13 @@ def process_printer_messages(printer_name, queue):
                 pdf=base_pdf, pages=print_payload.pages, exclude=print_payload.exclude)
             handler.print(print_payload=print_payload, pdf=merged_pdf)
         except BaseException as exception:
-            error_publisher.publish(
-                print_payload.identifier, type(exception).__name__)
+            pass
 
 
 def on_received_message_print_topic(client, userdata, msg):
     try:
+        print("received print topic!")
+
         # 1.  Processing payload that was received:
         print_payload: PrintPayload = payload_parser.parse_payload(msg.payload)
         topic_id = msg.topic.split("/")[3]
@@ -147,24 +116,17 @@ def on_received_message_print_topic(client, userdata, msg):
         printer_queues[print_payload.printer].put(print_payload)
 
     except BaseException as exception:
-        ErrorPublisher(client).publish(
-            topic_id=topic_id, exception=type(exception).__name__)
+        pass
 
 
 if __name__ == "__main__":
 
     load_dotenv()
 
-    client = get_connected_client()
-    client.loop_start()
-
-    status_topic = os.getenv("SERVICE_STATUS_TOPIC", 'mm/mqtt/printing/status')
-
-    print("Connecting done...")
     try:
-        while True:
-            client.publish(status_topic, payload="", qos=0, retain=False)
-            time.sleep(60)
+        client = get_connected_client()
+        print("Starting client...")
+        client.loop_forever()
 
     except KeyboardInterrupt:
         print("Exiting...")

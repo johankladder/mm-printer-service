@@ -1,8 +1,6 @@
 from pypdf import PdfReader
-from bin.models.print_payload import PrintPayload
-
 from paho.mqtt.client import Client
-
+from bin.models.print_payload import PrintPayload
 
 class PrintProcessor():
 

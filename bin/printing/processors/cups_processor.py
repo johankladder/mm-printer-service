@@ -1,9 +1,6 @@
 from bin.printing.handler import PrintProcessor
 from bin.models.print_payload import PrintPayload
-
-from service.mqtt.publishers.status_publisher import StatusPublisher
-from bin.util.cups import CupsConnection, get_printer_state
-import time
+from bin.util.cups import CupsConnection
 
 class CupsProcessor(PrintProcessor):
 
@@ -23,29 +20,3 @@ class CupsProcessor(PrintProcessor):
                 'Print job',
                 self.options
             )
-
-            completed = False
-            stopped = False
-            status = None
-
-            while not completed and not stopped:
-
-                state = get_printer_state(print_payload.printer)
-
-                if state == 4:
-                    status = "PROCESSING"
-                elif state == 3:
-                    status = "COMPLETED"
-                    completed = True
-                elif state == 5:
-                    status = "STOPPED"
-                    stopped = True
-                else:
-                    status = "UNKNOWN"
-
-                StatusPublisher(self.client).publish(
-                    print_payload=print_payload,
-                    status=status
-                )
-
-                time.sleep(2)
