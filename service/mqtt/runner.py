@@ -2,7 +2,6 @@
 # Run file with: python -m service.mqtt.runner
 import os
 import threading
-import time
 import queue
 
 from bin.processing.generator import PDFGenerator
@@ -47,8 +46,15 @@ def get_connected_client():
 
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
+        print("Connected to MQTT broker successfully")
         fill_processors(client=client)
         construct_printer_queues()
+
+        # Display number of threads
+        print("Number of threads: %i" % (len(threads)))
+        print("Number of processors: %i" % (len(processors)))
+        print("Number of printers: %i" % (len(printer_queues)))
+
         print_topic: str = os.getenv("PRINT_TOPIC", 'mm/printing/print/+')
         client.subscribe(print_topic)
         client.message_callback_add(print_topic, on_received_message_print_topic)
@@ -74,11 +80,19 @@ def construct_printer_queues():
     for printer in get_all_cups_printers():
         printer_queues[printer] = queue.Queue()
 
+    # Join all threads and clear the list
+    for thread in threads:
+        thread.join()
+
+    threads.clear()
+
     # Create listeners in seperate threads, so no locking will happen:
     for printer_name, printer_queue in printer_queues.items():
         queue_thread = threading.Thread(target=process_printer_messages,
                                         args=(printer_name, printer_queue))
         queue_thread.start()
+
+        # FIX: Will also be called on reconnect, so more threads will be created then needed
         threads.append(queue_thread)
 
 def process_printer_messages(printer_name, queue):
@@ -105,8 +119,6 @@ def process_printer_messages(printer_name, queue):
 
 def on_received_message_print_topic(client, userdata, msg):
     try:
-        print("received print topic!")
-
         # 1.  Processing payload that was received:
         print_payload: PrintPayload = payload_parser.parse_payload(msg.payload)
         topic_id = msg.topic.split("/")[3]
@@ -125,18 +137,14 @@ if __name__ == "__main__":
 
     try:
         client = get_connected_client()
-        print("Starting client...")
         client.loop_forever()
 
     except KeyboardInterrupt:
-        print("Exiting...")
         running = False
     finally:
-        print("Stopping threads...")
         for thread in threads:
             thread.join()
 
-        print("Stopping client...")
         client.loop_stop()
         client.disconnect()
 
