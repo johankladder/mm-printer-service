@@ -113,6 +113,7 @@ def process_printer_messages(printer_name, queue):
             merged_pdf = merger.merge(
                 pdf=base_pdf, pages=print_payload.pages, exclude=print_payload.exclude)
             # print("Execute print for printer: %s" % (print_payload.printer))
+            print("Message Processed")
             handler.print(print_payload=print_payload, pdf=merged_pdf)
         except BaseException as exception:
             pass
@@ -126,6 +127,7 @@ def on_received_message_print_topic(client, userdata, msg):
         print_payload.identifier = topic_id
 
         # print("Payload received for printer: %s" % (print_payload.printer))
+        print("Message received")
 
         # 2. Inject this payload in printer queue:
         printer_queues[print_payload.printer].put(print_payload)
