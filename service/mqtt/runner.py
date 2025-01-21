@@ -27,7 +27,9 @@ processors = []
 printer_queues = {}
 
 threads = []
-running = True
+
+running = threading.Event()
+running.set() 
 
 def get_connected_client():
     location = os.getenv("MQTT_HOST", 'localhost')
@@ -82,13 +84,14 @@ def construct_printer_queues():
 
     # Join all threads and clear the list: FIXME: Hier zit een probleem
     print("Joining threads...")
-    running = False
+    running.clear()
     for thread in threads:
         print("Trying to join a thread")
         thread.join()
         print("Joined a thread...")
 
     threads.clear()
+    running.set()
     print("Threads joined...")
 
     print("Setting queues...")
@@ -116,7 +119,7 @@ def process_printer_messages(printer_name, queue):
     incoming payload for printing to cups. 
     """
 
-    while running:
+    while running.is_set():
         try:
             print_payload: PrintPayload = queue.get(timeout=1)
         except:
@@ -160,7 +163,7 @@ if __name__ == "__main__":
         client.loop_forever()
 
     except KeyboardInterrupt:
-        running = False
+        running.clear()
     finally:
         for thread in threads:
             thread.join()
