@@ -79,13 +79,6 @@ def fill_processors(client):
 
 
 def construct_printer_queues():
-    print("Setting queues...")
-    printer_queues.clear()
-
-    for printer in get_all_cups_printers():
-        printer_queues[printer] = queue.Queue()
-
-    print("Queues loaded...")
 
     # Join all threads and clear the list: FIXME: Hier zit een probleem
     print("Joining threads...")
@@ -95,9 +88,16 @@ def construct_printer_queues():
         thread.join()
         print("Joined a thread...")
 
+    threads.clear()
     print("Threads joined...")
 
-    threads.clear()
+    print("Setting queues...")
+    printer_queues.clear()
+
+    for printer in get_all_cups_printers():
+        printer_queues[printer] = queue.Queue()
+
+    print("Queues loaded...")
 
     # Create listeners in seperate threads, so no locking will happen:
     for printer_name, printer_queue in printer_queues.items():
@@ -127,7 +127,6 @@ def process_printer_messages(printer_name, queue):
             base_pdf = generator.generate(payload=print_payload)
             merged_pdf = merger.merge(
                 pdf=base_pdf, pages=print_payload.pages, exclude=print_payload.exclude)
-            # print("Execute print for printer: %s" % (print_payload.printer))
             print("Message Processed")
             handler.print(print_payload=print_payload, pdf=merged_pdf)
         except BaseException as exception:
