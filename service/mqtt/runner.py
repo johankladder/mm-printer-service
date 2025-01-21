@@ -89,8 +89,9 @@ def construct_printer_queues():
 
     # Join all threads and clear the list: FIXME: Hier zit een probleem
     print("Joining threads...")
-
+    running = False
     for thread in threads:
+        print("Trying to join a thread")
         thread.join()
         print("Joined a thread...")
 
