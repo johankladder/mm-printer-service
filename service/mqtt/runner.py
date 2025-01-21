@@ -117,6 +117,7 @@ def process_printer_messages(printer_name, queue):
     """
 
     while running:
+        print("running")
         try:
             print_payload: PrintPayload = queue.get(timeout=1)
         except:
@@ -132,6 +133,7 @@ def process_printer_messages(printer_name, queue):
         except BaseException as exception:
             pass
 
+    print("Not running anymore...")
 
 def on_received_message_print_topic(client, userdata, msg):
     try:
