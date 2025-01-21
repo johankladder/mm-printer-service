@@ -79,12 +79,15 @@ def fill_processors(client):
 
 
 def construct_printer_queues():
+    print("Setting queues...")
     for printer in get_all_cups_printers():
         printer_queues[printer] = queue.Queue()
 
     print("Queues loaded...")
 
     # Join all threads and clear the list: FIXME: Hier zit een probleem
+    print("Joining threads...")
+
     for thread in threads:
         thread.join()
         print("Joined a thread...")
