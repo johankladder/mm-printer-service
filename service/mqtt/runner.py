@@ -75,14 +75,20 @@ def fill_processors(client):
     for processor in processors_from_env:
         processors.append(processor_map[processor])
 
+    print("Processors loaded...")
+
 
 def construct_printer_queues():
     for printer in get_all_cups_printers():
         printer_queues[printer] = queue.Queue()
 
-    # Join all threads and clear the list
+    print("Queues loaded...")
+
+    # Join all threads and clear the list: FIXME: Hier zit een probleem
     for thread in threads:
         thread.join()
+
+    print("Threads joined...")
 
     threads.clear()
 
@@ -94,6 +100,8 @@ def construct_printer_queues():
 
         # FIX: Will also be called on reconnect, so more threads will be created then needed
         threads.append(queue_thread)
+
+    print("Threads loaded...")
 
 def process_printer_messages(printer_name, queue):
     """
