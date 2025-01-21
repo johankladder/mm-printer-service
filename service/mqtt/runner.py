@@ -87,6 +87,7 @@ def construct_printer_queues():
     # Join all threads and clear the list: FIXME: Hier zit een probleem
     for thread in threads:
         thread.join()
+        print("Joined a thread...")
 
     print("Threads joined...")
 
