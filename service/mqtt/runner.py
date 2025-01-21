@@ -80,6 +80,8 @@ def fill_processors(client):
 
 def construct_printer_queues():
     print("Setting queues...")
+    printer_queues.clear()
+
     for printer in get_all_cups_printers():
         printer_queues[printer] = queue.Queue()
 
